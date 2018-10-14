@@ -1,0 +1,56 @@
+version: 2
+jobs:
+  unit-test:
+    parallelism: 1
+    working_directory: ~/sherlog
+    docker:
+      - image: circleci/clojure:latest
+    environment:
+      - SERVICE_NAME: sherlog
+      - AWS_PROFILE: staging
+    steps:
+      - checkout
+      - run: git clone https://${READ_BOT_TOKEN}@github.com/omnypay/omnypay-ci.git  ~/omnypay-ci
+      - run: ~/omnypay-ci/install-basic-deps.sh
+      - run: ~/omnypay-ci/set-aws-creds.sh
+      - restore_cache:
+          keys:
+            - deps-{{ checksum "deps.edn" }}
+      - run: clojure -Adev:test unit
+      - save_cache:
+          key: deps-{{ checksum "deps.edn" }}
+          paths:
+            - ~/.m2
+            - ~/.gitlibs
+  release:
+    parallelism: 1
+    working_directory: ~/sherlog
+    docker:
+      - image: circleci/clojure:latest
+    environment:
+      - VERSION_FILE: ../VERSION
+      - SERVICE_NAME: sherlog
+      - GOROOT: ""
+      - GOPATH: "/root/.go"
+      - AWS_PROFILE: staging
+    steps:
+      - checkout
+      - run: git clone https://${READ_BOT_TOKEN}@github.com/omnypay/omnypay-ci.git  ~/omnypay-ci
+      - run: ~/omnypay-ci/install-basic-deps.sh
+      - run: ~/omnypay-ci/install-release-deps.sh
+      - restore_cache:
+          keys:
+            - deps-{{ checksum "deps.edn" }}
+      - run: semver-from-git $VERSION_FILE
+      - run: export SEMVER=$(cat $VERSION_FILE); ~/omnypay-ci/release-lib.sh
+workflows:
+  version: 2
+  build_test_release:
+    jobs:
+      - unit-test
+      - release:
+          requires:
+            - unit-test
+          filters:
+            branches:
+              only: master
