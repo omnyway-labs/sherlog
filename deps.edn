@@ -4,4 +4,5 @@
   com.amazonaws/aws-java-sdk-cloudwatch #:mvn{:version "1.11.428"},
   com.amazonaws/aws-java-sdk-logs #:mvn{:version "1.11.428"},
   com.amazonaws/aws-java-sdk-sts #:mvn{:version "1.11.428"},
-  com.amazonaws/aws-java-sdk-xray #:mvn{:version "1.11.428"},}}
+  com.amazonaws/aws-java-sdk-xray #:mvn{:version "1.11.428"}
+  com.google.guava/guava {:mvn/version "22.0"},}}
