@@ -3,10 +3,9 @@
    [sherlog.log :as log]))
 
 
-(defn tail [service]
-  (clog/init! (env/get-aws-config))
-  (let [log-stream (log/latest-log-stream log-group)]
-    (log/log-seq log-group log-stream)))
+(defn tail [log-group]
+  (->> (log/latest-log-stream log-group)
+       (log/log-seq log-group)))
 
 (defn trace []
   )
