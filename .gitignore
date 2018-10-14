@@ -1,0 +1,5 @@
+/pom.xml
+/target/
+.lein-failures
+.cpcache
+.nrepl-port

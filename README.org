@@ -1,0 +1,11 @@
+
+A Clojure Library to trace logs in the Cloud
+
+* usage
+
+#+begin_src clojure
+(require '[sherlog.core :as log])
+(log/search "zapbuy-qa-001" "ERROR" 3000)
+
+(log/trace "trace-id")
+#+end_src

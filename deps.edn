@@ -1,0 +1,8 @@
+{:deps
+ {clj-time #:mvn{:version "0.14.4"}
+  org.clojure/clojure #:mvn{:version "1.9.0"}
+  clojurewerkz/propertied #:mvn{:version "1.2.0"},
+  com.amazonaws/aws-java-sdk-cloudwatch #:mvn{:version "1.11.336"},
+  com.amazonaws/aws-java-sdk-logs #:mvn{:version "1.11.255"},
+  com.amazonaws/aws-java-sdk-sts #:mvn{:version "1.11.255"},
+  com.taoensso/timbre #:mvn{:version "4.7.4"}}}
