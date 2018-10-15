@@ -63,7 +63,7 @@
   "Returns a lazy sequence of log events from Cloudwatch"
   ([group stream]
    (let [{:keys [token events]}
-         (get-log-events group stream (u/start-time))]
+         (get-log-events group stream (u/start-time) nil)]
      (u/rate-limit!)
      (log-seq group stream events token)))
   ([group stream next-token]

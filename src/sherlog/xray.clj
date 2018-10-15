@@ -41,19 +41,22 @@
   {:token    (.getNextToken result)
    :services (map as-service (.getServices result))})
 
-(defn get-service-graph [duration]
+(defn get-service-graph [duration token]
   (let [{:keys [start end]} (u/time-boundary duration)]
     (->> (doto (GetServiceGraphRequest.)
            (.withStartTime start)
-           (.withEndTime   end))
+           (.withEndTime   end)
+           (.withNextToken token))
          (.getServiceGraph (get-client))
          (as-graph-result))))
 
-(defn get-trace-graph []
-  )
-
-(defn get-trace-summaries [])
-
+(defn stats [duration]
+  (loop [{:keys [token services]} (get-service-graph duration nil)
+           acc []]
+      (if-not token
+        (conj acc services)
+        (recur (get-service-graph duration token)
+               (conj acc services)))))
 
 (defn init! [config]
   (cred/init! config)

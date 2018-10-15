@@ -10,8 +10,10 @@
 (defn search [log-group pattern duration]
   (log/search log-group pattern duration))
 
-(defn api-stats [duration]
-  (xray/get-service-graph duration))
+(defn stats [duration]
+  (->> (xray/stats duration)
+       (flatten)
+       (remove nil?)))
 
 (defn init! [auth]
   (log/init! auth)
