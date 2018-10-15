@@ -22,20 +22,24 @@
   @client)
 
 (defn as-histogram [h]
-  {:value (.getValue h)
+  {:value (int (* 1000 (.getValue h)))
    :count (.getCount h)})
 
 (defn as-service [s]
-  (u/ignore-errors
-   (let [stat (.getSummaryStatistics s)]
-     {:started            (.getStartTime s)
-      :name               (.getName s)
-      :total              (.getTotalCount stat)
-      :ok                 (.getOkCount stat)
-      :error              (.. stat getErrorStatistics getTotalCount)
-      :response-time      (.getTotalResponseTime stat)
-      :response-histogram (->> (.getResponseTimeHistogram s)
-                               (map as-histogram))})))
+  (when-let [stat (u/ignore-errors (.getSummaryStatistics s))]
+    (let [total (.getTotalCount stat)]
+      {:started            (.getStartTime s)
+       :name               (.getName s)
+       :total              total
+       :2xx                (.getOkCount stat)
+       :4xx                (.. stat getErrorStatistics getTotalCount)
+       :5xx                (.. stat getFaultStatistics getTotalCount)
+       :response-time      (-> (/ (* 1000 (.getTotalResponseTime stat))
+                                  total)
+                               (Math/ceil)
+                               (int))
+       :response-histogram (->> (.getResponseTimeHistogram s)
+                                (map as-histogram))})))
 
 (defn as-graph-result [result]
   {:token    (.getNextToken result)
@@ -54,7 +58,9 @@
   (loop [{:keys [token services]} (get-service-graph duration nil)
            acc []]
       (if-not token
-        (conj acc services)
+        (->> (conj acc services)
+             (flatten)
+             (remove nil?))
         (recur (get-service-graph duration token)
                (conj acc services)))))
 

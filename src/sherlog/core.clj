@@ -11,9 +11,10 @@
   (log/search log-group pattern duration))
 
 (defn stats [duration]
-  (->> (xray/stats duration)
-       (flatten)
-       (remove nil?)))
+  (xray/stats duration))
+
+(defn trace [trace-id]
+  )
 
 (defn init! [auth]
   (log/init! auth)
