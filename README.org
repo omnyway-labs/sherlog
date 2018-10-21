@@ -17,7 +17,7 @@ A Clojure Library to search logs and metrics in the AWS Cloud
 
 (log/find-api-traces duration pattern)
 
-(log/show-api-stats duration)
+(log/find-api-stats duration)
 
 (log/find-metrics "zapbuy-qa-001")
 (log/show-metric "AWS/Billing" "EstimatedCharges" :currency "1d")

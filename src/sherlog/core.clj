@@ -17,7 +17,7 @@
 (defn find-api-traces [duration pattern]
   (xray/list-traces duration pattern))
 
-(defn show-api-stats [duration]
+(defn find-api-stats [duration]
   (xray/stats duration))
 
 (defn find-metrics
