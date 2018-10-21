@@ -9,6 +9,7 @@
    [com.amazonaws.services.logs.model
     FilterLogEventsRequest
     DescribeLogStreamsRequest
+    DescribeSubscriptionFiltersRequest
     GetLogEventsRequest
     OrderBy]))
 
@@ -30,6 +31,11 @@
 (defn as-log-events [events]
   {:token (.getNextForwardToken events)
    :events (map #(.getMessage %) (.getEvents events))})
+
+(defn list-subscriptions [log-group]
+  (->> (doto (DescribeSubscriptionFiltersRequest.)
+         (.withLogGroupName log-group))
+       (.describeSubscriptionFilters (get-client))))
 
 (defn get-log-events [log-group log-stream start-time token]
   (->> (doto (GetLogEventsRequest.)

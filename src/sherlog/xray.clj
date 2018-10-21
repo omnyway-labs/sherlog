@@ -82,12 +82,13 @@
            (.withEndTime   end)
            (.withNextToken token)
            (.withSampling false)
-           (.withFilterExpression pattern))
+           ;(.withFilterExpression pattern)
+           )
          (.getTraceSummaries (get-client))
          (as-trace-result))))
 
 (defn list-traces [duration pattern]
-  (loop [{:keys [token traces]} (list-traces* duration nil)
+  (loop [{:keys [token traces]} (list-traces* duration pattern nil)
            acc []]
       (if-not token
         (->> (conj acc traces)

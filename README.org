@@ -1,11 +1,27 @@
 
-A Clojure Library to trace logs in the Cloud
+A Clojure Library to search logs and metrics in the AWS Cloud
 
-* usage
+* Usage
 
 #+begin_src clojure
 (require '[sherlog.core :as log])
-(log/search "zapbuy-qa-001" "ERROR" 3000)
+(log/init! {:auth-type :profile
+            :profile   :prod-core
+            :region    "us-east-1"})
 
-(log/trace "trace-id")
+(log/search "zapbuy-qa-001" "ERROR" 3000)
+(log/search "zapbuy-qa-001" "{ $.cue = \"merchant.lookup\" }" 3000)
+
+(log/tail "zapbuy-qa-001")
+;; returns a log-seq
+
+(log/find-api-traces duration pattern)
+
+(log/show-api-stats duration)
+
+(log/find-metrics "zapbuy-qa-001")
+(log/show-metric "AWS/Billing" "EstimatedCharges" :currency "1d")
+
 #+end_src
+
+* IAM Permissions
