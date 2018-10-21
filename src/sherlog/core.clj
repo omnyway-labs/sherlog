@@ -5,17 +5,20 @@
    [sherlog.metric :as metric]))
 
 (defn tail [log-group]
-  (->> (log/latest-log-stream log-group)
-       (log/log-seq log-group)))
+  (let [stream (log/latest-log-stream log-group)]
+    (log/log-seq log-group stream nil)))
 
-(defn search [log-group pattern duration]
-  (log/search log-group pattern duration))
+(defn search
+  ([log-group pattern duration]
+   (log/search-group log-group pattern duration))
+  ([log-group streams pattern duration]
+   (log/search-streams log-group streams pattern duration)))
 
-(defn stats [duration]
+(defn find-api-traces [duration pattern]
+  (xray/list-traces duration pattern))
+
+(defn show-api-stats [duration]
   (xray/stats duration))
-
-(defn trace [trace-id]
-  )
 
 (defn find-metrics
   ([namespace]
@@ -39,6 +42,3 @@
   (init! {:auth-type :profile
           :profile   :prod-core
           :region    "us-east-1"}))
-
-(comment
-  (show-metric "AWS/Billing" "EstimatedCharges" :currency "1d"))
