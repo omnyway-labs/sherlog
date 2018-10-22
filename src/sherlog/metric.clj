@@ -80,7 +80,7 @@
 
 (defn get-stats [namespace metric dimension duration]
   (let [{:keys [start period]} (u/estimate-period duration)
-        {:keys [name value]}   (get dimensions dimension)]
+        {:keys [name value]}   (get dimensions dimension dimension)]
     (->> (doto (GetMetricStatisticsRequest.)
            (.withNamespace namespace)
            (.withMetricName metric)
