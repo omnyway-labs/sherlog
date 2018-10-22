@@ -4,9 +4,12 @@
    [sherlog.xray :as xray]
    [sherlog.metric :as metric]))
 
-(defn tail [log-group]
-  (let [stream (log/latest-log-stream log-group)]
-    (log/log-seq log-group stream nil)))
+(defn tail
+  ([log-group]
+   (let [stream (log/latest-log-stream log-group)]
+     (log/log-seq log-group stream nil)))
+  ([log-group stream]
+   (log/log-seq log-group stream nil)))
 
 (defn search
   ([log-group pattern duration]
