@@ -11,6 +11,8 @@ A Clojure Library to search logs and metrics in the AWS Cloud
 
 (log/search "zapbuy-qa-001" "ERROR" 3000)
 (log/search "zapbuy-qa-001" "{ $.cue = \"merchant.lookup\" }" 3000)
+;; search takes a map
+(log/search "zapbuy-qa-001" {:cue "merchant.lookup" :log-type "event"} 3000)
 
 (log/tail "zapbuy-qa-001")
 ;; returns a log-seq

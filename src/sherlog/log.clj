@@ -15,20 +15,20 @@
 
 (defonce client (atom nil))
 
-(defn make-client [region]
+(defn- make-client [region]
   (-> (AWSLogsClientBuilder/standard)
       (.withCredentials (cred/cred-provider))
       (.withRegion region)
       .build))
 
-(defn get-client []
+(defn- get-client []
   @client)
 
-(defn as-events [events]
+(defn- as-events [events]
   {:token (.getNextToken events)
    :events (map #(.getMessage %) (.getEvents events))})
 
-(defn as-log-events [events]
+(defn- as-log-events [events]
   {:token (.getNextForwardToken events)
    :events (map #(.getMessage %) (.getEvents events))})
 
@@ -37,7 +37,7 @@
          (.withLogGroupName log-group))
        (.describeSubscriptionFilters (get-client))))
 
-(defn get-log-events [log-group log-stream start-time token]
+(defn- get-log-events [log-group log-stream start-time token]
   (->> (doto (GetLogEventsRequest.)
           (.withLogStreamName log-stream)
           (.withLogGroupName log-group)
@@ -46,7 +46,7 @@
        (.getLogEvents (get-client))
        (as-log-events)))
 
-(defn filter-log [log-group pattern start-time token]
+(defn- filter-log [log-group pattern start-time token]
   (->> (doto (FilterLogEventsRequest.)
          (.withFilterPattern pattern)
          (.withLogGroupName log-group)
@@ -55,7 +55,7 @@
        (.filterLogEvents (get-client))
        (as-events)))
 
-(defn filter-log* [log-group log-streams pattern start-time token]
+(defn- filter-log* [log-group log-streams pattern start-time token]
   (->> (doto (FilterLogEventsRequest.)
          (.withFilterPattern pattern)
          (.withLogGroupName log-group)
@@ -76,6 +76,16 @@
        (first)
        (.getLogStreamName)))
 
+(defn make-pattern [filters]
+  (if (string? filters)
+    filters
+    (letfn [(as-form [[k v]]
+              (format "($.%s = %s)" (name k) (pr-str v)))]
+      (->> (map as-form filters)
+           (interpose " && ")
+           (apply str)
+           (format "{%s}")))))
+
 (defn log-seq
   "Returns a lazy sequence of log events from Cloudwatch"
   ([group stream]
@@ -92,7 +102,8 @@
    (lazy-seq (concat events (log-seq group stream token)))))
 
 (defn search-group [log-group pattern duration]
-  (let [start (u/now-minus-secs duration)]
+  (let [start (u/now-minus-secs duration)
+        pattern (make-pattern pattern)]
     (loop [{:keys [token events]} (filter-log log-group pattern start nil)
            acc []]
       (if-not token
@@ -101,8 +112,9 @@
                (conj acc events))))))
 
 (defn search-streams [log-group streams pattern duration]
-  (let [start (u/now-minus-secs duration)]
-    (loop [{:keys [token events]}
+  (let [start (u/now-minus-secs duration)
+        pattern (make-pattern pattern)]
+     (loop [{:keys [token events]}
            (filter-log* log-group streams pattern start nil)
            acc []]
       (if-not token
