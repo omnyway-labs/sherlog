@@ -8,8 +8,8 @@
   ([log-group]
    (let [stream (log/latest-log-stream log-group)]
      (log/log-seq log-group stream nil)))
-  ([log-group stream]
-   (log/log-seq log-group stream nil)))
+  ([log-group log-stream]
+   (log/log-seq log-group log-stream nil)))
 
 (defn search
   ([log-group pattern duration]
