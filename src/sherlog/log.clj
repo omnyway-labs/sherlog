@@ -77,14 +77,14 @@
        (.getLogStreamName)))
 
 (defn make-pattern [filters]
-  (if (string? filters)
-    filters
+  (if (map? filters)
     (letfn [(as-form [[k v]]
               (format "($.%s = %s)" (name k) (pr-str v)))]
       (->> (map as-form filters)
            (interpose " && ")
            (apply str)
-           (format "{%s}")))))
+           (format "{%s}")))
+    filters))
 
 (defn log-seq
   "Returns a lazy sequence of log events from Cloudwatch"
