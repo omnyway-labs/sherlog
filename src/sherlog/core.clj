@@ -7,9 +7,9 @@
 (defn tail
   ([log-group]
    (let [stream (log/latest-log-stream log-group)]
-     (log/log-seq log-group stream nil)))
+     (log/log-seq log-group stream)))
   ([log-group log-stream]
-   (log/log-seq log-group log-stream nil)))
+   (log/log-seq log-group log-stream)))
 
 (defn search
   ([log-group pattern duration]

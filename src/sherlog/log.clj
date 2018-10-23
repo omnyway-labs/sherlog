@@ -37,14 +37,24 @@
          (.withLogGroupName log-group))
        (.describeSubscriptionFilters (get-client))))
 
-(defn- get-log-events [log-group log-stream start-time token]
-  (->> (doto (GetLogEventsRequest.)
-          (.withLogStreamName log-stream)
-          (.withLogGroupName log-group)
-          (.withStartTime start-time)
-          (.withNextToken token))
+(defn get-log-events
+  ([log-group log-stream start-time]
+   (->> (doto (GetLogEventsRequest.)
+         (.withLogStreamName log-stream)
+         (.withLogGroupName log-group)
+         (.withStartTime start-time)
+         (.withStartFromHead false))
        (.getLogEvents (get-client))
        (as-log-events)))
+  ([log-group log-stream start-time token]
+   (->> (doto (GetLogEventsRequest.)
+         (.withLogStreamName log-stream)
+         (.withLogGroupName log-group)
+         (.withNextToken token)
+         (.withStartTime start-time)
+         (.withStartFromHead false))
+       (.getLogEvents (get-client))
+       (as-log-events))))
 
 (defn- filter-log [log-group pattern start-time token]
   (->> (doto (FilterLogEventsRequest.)
@@ -90,7 +100,7 @@
   "Returns a lazy sequence of log events from Cloudwatch"
   ([group stream]
    (let [{:keys [token events]}
-         (get-log-events group stream (u/start-time) nil)]
+         (get-log-events group stream (u/start-time))]
      (u/rate-limit!)
      (log-seq group stream events token)))
   ([group stream next-token]
