@@ -20,8 +20,7 @@
 (defn list-filters [log-group type]
   (condp = type
     :metric       (log/list-metric-filters log-group)
-    :subscription (log/list-subscriptions log-group)
-    :else (log/list-metric-filters log-group)))
+    :subscription (log/list-subscriptions log-group)))
 
 (defn find-api-traces [duration pattern]
   (xray/list-traces duration pattern))
