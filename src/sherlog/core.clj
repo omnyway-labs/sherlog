@@ -17,6 +17,12 @@
   ([log-group streams pattern duration]
    (log/search-streams log-group streams pattern duration)))
 
+(defn list-subscriptions [log-group]
+  (log/list-subscriptions log-group))
+
+(defn list-metric-filters [log-group]
+  (log/list-metric-filters log-group))
+
 (defn find-api-traces [duration pattern]
   (xray/list-traces duration pattern))
 
