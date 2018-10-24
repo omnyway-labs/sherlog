@@ -15,7 +15,7 @@
   (- (current-utc-ms) (* secs 1000)))
 
 (defn start-time []
-  (- (current-utc-ms) 20000))
+  (- (current-utc-ms) 10000))
 
 (def rate-limiter (RateLimiter/create 1.0))
 
@@ -50,3 +50,6 @@
                  "1w" {:period 600 :start (start-time (* 7 24 60 60))}
                  "2w" {:period 900 :start (start-time (* 2 7 24 60 60))}}]
     (get mapping (or duration "1d"))))
+
+(defn ms->datetime [ms]
+  (c/from-long ms))
