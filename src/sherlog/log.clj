@@ -91,25 +91,25 @@
        (.getLogEvents (get-client))
        (as-log-events))))
 
-(defn- filter-log [log-group pattern start-time token]
-  (->> (doto (FilterLogEventsRequest.)
+(defn- filter-log
+  ([log-group pattern start-time token]
+   (->> (doto (FilterLogEventsRequest.)
          (.withFilterPattern pattern)
          (.withLogGroupName log-group)
          (.withStartTime start-time)
          (.withNextToken token))
        (.filterLogEvents (get-client))
        (as-events)))
-
-(defn- filter-log* [log-group log-streams pattern start-time token]
-  (->> (doto (FilterLogEventsRequest.)
-         (.withFilterPattern pattern)
-         (.withLogGroupName log-group)
-         (.withLogStreamNames log-streams)
-         (.withStartTime start-time)
-         (.withNextToken token)
-         (.withInterleaved true))
-       (.filterLogEvents (get-client))
-       (as-events)))
+  ([log-group log-streams pattern start-time token]
+   (->> (doto (FilterLogEventsRequest.)
+          (.withFilterPattern pattern)
+          (.withLogGroupName log-group)
+          (.withLogStreamNames log-streams)
+          (.withStartTime start-time)
+          (.withNextToken token)
+          (.withInterleaved true))
+        (.filterLogEvents (get-client))
+        (as-events))))
 
 (defn latest-log-stream [log-group]
   (->> (doto (DescribeLogStreamsRequest.)
@@ -160,11 +160,11 @@
   (let [start (u/now-minus-secs duration)
         pattern (make-pattern pattern)]
      (loop [{:keys [token events]}
-           (filter-log* log-group streams pattern start nil)
+           (filter-log log-group streams pattern start nil)
            acc []]
       (if-not token
         (conj acc events)
-        (recur (filter-log* log-group streams pattern start token)
+        (recur (filter-log log-group streams pattern start token)
                (conj acc events))))))
 
 (defn init! [config]
