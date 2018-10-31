@@ -13,6 +13,7 @@
     DescribeMetricFiltersRequest
     GetLogEventsRequest
     PutMetricFilterRequest
+    DeleteMetricFilterRequest
     OrderBy]))
 
 (defonce client (atom nil))
@@ -71,6 +72,12 @@
          (.withFilterName name)
          (.withFilterPattern pattern))
        (.putMetricFilter (get-client))))
+
+(defn delete-metric-filter [log-group name]
+  (->> (doto (DeleteMetricFilterRequest.)
+         (.withLogGroupName log-group)
+         (.withFilterName name))
+       (.deleteMetricFilter (get-client))))
 
 (defn get-log-events
   ([log-group log-stream start-time]

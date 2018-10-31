@@ -22,6 +22,9 @@
     :metric       (log/list-metric-filters log-group)
     :subscription (log/list-subscriptions log-group)))
 
+(defn delete-filter [log-group name]
+  (log/delete-metric-filter log-group name))
+
 (defn find-api-traces [duration pattern]
   (xray/list-traces duration pattern))
 
