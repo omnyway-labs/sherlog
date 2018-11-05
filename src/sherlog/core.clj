@@ -25,6 +25,9 @@
 (defn delete-filter [log-group name]
   (log/delete-metric-filter log-group name))
 
+(defn create-filter [log-group name pattern]
+  (log/create-metric-filter log-group name pattern))
+
 (defn find-api-traces [duration pattern]
   (xray/list-traces duration pattern))
 
