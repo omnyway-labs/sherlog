@@ -14,7 +14,8 @@
     GetLogEventsRequest
     PutMetricFilterRequest
     DeleteMetricFilterRequest
-    OrderBy]))
+    OrderBy
+    MetricTransformation]))
 
 (defonce client (atom nil))
 
@@ -66,12 +67,20 @@
         (recur (list-metric-filters* log-group token)
                (conj acc filters)))))
 
-(defn create-metric-filter [log-group name pattern]
-  (->> (doto (PutMetricFilterRequest.)
-         (.withLogGroupName log-group)
-         (.withFilterName name)
-         (.withFilterPattern pattern))
-       (.putMetricFilter (get-client))))
+(defn- make-metric-transformation [namespace name value]
+  (doto (MetricTransformation.)
+    (.withMetricName name)
+    (.withMetricValue value)
+    (.withMetricNamespace namespace)))
+
+(defn create-metric-filter [log-group name pattern namespace value]
+  (let [metric-xf [(make-metric-transformation namespace name value)]]
+    (->> (doto (PutMetricFilterRequest.)
+           (.withLogGroupName log-group)
+           (.withFilterName name)
+           (.withFilterPattern pattern)
+           (.withMetricTransformations metric-xf))
+         (.putMetricFilter (get-client)))))
 
 (defn delete-metric-filter [log-group name]
   (->> (doto (DeleteMetricFilterRequest.)
