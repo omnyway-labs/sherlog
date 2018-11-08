@@ -17,7 +17,7 @@
 (defn start-time []
   (- (current-utc-ms) 10000))
 
-(def rate-limiter (RateLimiter/create 1.0))
+(def rate-limiter (RateLimiter/create 0.5))
 
 (defn rate-limit! []
   (.acquire rate-limiter))
