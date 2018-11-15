@@ -1,7 +1,19 @@
 
-A Clojure Library to search logs and metrics in the AWS Cloud
+Library to query logs in Cloudwatch and S3
+
+Sherlog abstracts querying logs and creating realtime metrics from
+the log streams
+
+Sherlog provides APIs to
+- Query and Cloudwatch Log Streams
+- Filter and Fetch logs in S3 using AWS S3-select
+- Create Metric Filters on Cloudwatch Logs
+- Query Stats from AWS X-ray logs
+- Generate Cloudwatch Events from Logs
 
 * Usage
+
+** Initialize sherlog
 
 #+begin_src clojure
 (require '[sherlog.core :as log])
@@ -9,19 +21,70 @@ A Clojure Library to search logs and metrics in the AWS Cloud
             :profile   (System/getenv "AWS_PROFILE")
             :region    "us-east-1"})
 
+#+end_src
+
+** Querying Cloudwatch Logs
+
+#+begin_src clojure
+(log/search log-group PATTERN DURATION-IN-SECS)
+#+end_src
+
+Where PATTERN is a clojure map or a jq-like Pattern supported by
+Cloudwatch
+
+Examples:
+
+#+begin_src clojure
 (log/search log-group "ERROR" 3000)
 (log/search log-group "{ $.id = \"id123\" }" 3000)
 ;; search takes a map
 (log/search log-group {:id "id123" :log-type "event"} 3000)
 
+
 (log/tail log-group)
 ;; returns a log-seq
+#+end_src
 
-(log/find-api-traces duration pattern)
+** Grepping Logs in S3
 
-(log/find-api-stats duration)
+Sherlog uses s3-select to *grep* logs in S3. Supports logs in JSON
+encoding.
 
+#+begin_src clojure
+(log/grep s3-bucket prefix filters)
+;; example
+(log/grep "my-s3-bucket" "2018/11" {:log-type "event"})
+#+end_src
+
+** Cloudwatch Metric and Subscription Filters
+
+Sherlog supports both Metric and Subscription Filters.
+To list the filters:
+#+begin_src clojure
+(log/list-filters log-group type)
+#+end_src
+where type is *:metric* or *:subscription*
+
+
+To create a Metric Filter, you could
+
+#+begin_src clojure
+(log/create-filter log-group name pattern namespace initial-value)
+;; example:
+(log/create-filter :foo "my-metric" {:log-type "error"} "errors" 1)
+;; this creates a realtime counter of errors in logs
+
+(log/delete-filter log-group name)
+#+end_src
+
+#+begin_src clojure
 (log/find-metrics metric-namespace)
 (log/show-metric "AWS/Billing" "EstimatedCharges" :currency "1d")
+#+end_src
 
+** X-ray Stats
+
+#+begin_src clojure
+(log/find-api-traces duration pattern)
+(log/find-api-stats duration)
 #+end_src

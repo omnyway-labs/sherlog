@@ -2,7 +2,8 @@
   (:require
    [sherlog.log :as log]
    [sherlog.xray :as xray]
-   [sherlog.metric :as metric]))
+   [sherlog.metric :as metric]
+   [sherlog.s3 :as s3]))
 
 (defn tail
   ([log-group]
@@ -47,6 +48,13 @@
   (->> (metric/get-stats namespace metric dimension duration)
        (sort-by :timestamp)
        (reverse)))
+
+(defn grep
+  ([s3-bucket prefix filters]
+   (s3/query-prefix s3-bucket prefix filters))
+  ([s3-bucket prefix filters out-file]
+   (-> (s3/query-prefix s3-bucket prefix filters)
+       (s3/write-streams out-file))))
 
 (defn init! [auth]
   (log/init! auth)
