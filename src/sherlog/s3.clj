@@ -14,13 +14,17 @@
     SelectObjectContentEvent
     SelectObjectContentEventVisitor
     SelectObjectContentRequest
-    SelectObjectContentResult]
+    SelectObjectContentResult
+    ListObjectsV2Request]
    [java.io
     File FileOutputStream
     InputStream OutputStream]
    [com.amazonaws.util IOUtils]))
 
 (defonce client (atom nil))
+
+(defn get-client []
+  @client)
 
 (defn make-client [region]
   (-> (AmazonS3ClientBuilder/standard)
@@ -74,19 +78,52 @@
            (format "%s")))
     filters))
 
+(defn as-keys [xs]
+  {:token (.getNextContinuationToken xs)
+   :keys  (map #(.getKey %) (.getObjectSummaries xs))})
+
+(defn list-keys* [bucket prefix token]
+  (->> (doto (ListObjectsV2Request.)
+         (.withBucketName bucket)
+         (.withPrefix prefix)
+         (.withContinuationToken token))
+       (.listObjectsV2 (get-client))
+       (as-keys)))
+
+(defn list-keys [bucket prefix]
+  (loop [{:keys [token keys]} (list-keys* bucket prefix nil)
+         acc  []]
+    (if-not token
+      (flatten (conj acc keys))
+      (recur (list-keys* bucket prefix token)
+             (conj acc keys)))))
+
 (defn make-expression [m]
-  (->> (map->where-clause m)
-       (str "select * from S3Object s where ")))
+  (if (empty? m)
+    "select * from S3Object s"
+    (->> (map->where-clause m)
+         (str "select * from S3Object s where "))))
 
 (defn query [bucket key filters]
   (->> (make-expression filters)
        (make-object-content-request bucket key)
-       (.selectObjectContent @client)
+       (.selectObjectContent (get-client))
        (as-result)))
 
-(defn query-and-write [bucket key filters filename]
-  (-> (query bucket key filters)
-      (IOUtils/copy (out-file filename))))
+(defn query-prefix [bucket prefix filters]
+  (->> (list-keys bucket prefix)
+       (map #(query bucket % filters))))
+
+(defn write-file* [input-stream filename]
+  (->> (FileOutputStream. (File. filename))
+       (IOUtils/copy input-stream)))
+
+(defn write-streams [input-streams filename]
+  (let [output-stream (FileOutputStream. (File. filename))]
+    (if (coll? input-streams)
+      (doseq [in input-streams]
+        (IOUtils/copy in output-stream))
+      (write-file* input-streams output-stream))))
 
 (defn init! [{:keys [region] :as auth}]
   (let [region (or region "us-east-1")]
