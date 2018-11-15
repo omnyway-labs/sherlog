@@ -47,6 +47,7 @@
    :services (map as-service (.getServices result))})
 
 (defn as-trace [t]
+  (prn (u/omethods t))
   {:id     (.getId t)
    :time   (int (Math/ceil (* (.getResponseTime t) 1000)))
    :url    (.. t getHttp getHttpURL)
@@ -96,13 +97,6 @@
              (remove nil?))
         (recur (list-traces* duration pattern token)
                (conj acc traces)))))
-
-(defn trace-seq []
-  )
-
-
-(defn search-trace []
-  )
 
 (defn init! [config]
   (cred/init! config)
