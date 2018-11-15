@@ -3,7 +3,8 @@
    [sherlog.log :as log]
    [sherlog.xray :as xray]
    [sherlog.metric :as metric]
-   [sherlog.s3 :as s3]))
+   [sherlog.s3 :as s3]
+   [sherlog.util :refer [->!]]))
 
 (defn tail
   ([log-group]
@@ -57,9 +58,11 @@
        (s3/write-streams out-file))))
 
 (defn init! [auth]
-  (log/init! auth)
-  (xray/init! auth)
-  (metric/init! auth))
+  (->! auth
+       log/init!
+       xray/init!
+       metric/init!
+       s3/init!))
 
 (comment
   (init! {:auth-type :profile

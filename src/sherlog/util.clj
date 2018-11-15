@@ -53,3 +53,22 @@
 
 (defn ms->datetime [ms]
   (c/from-long ms))
+
+(defmacro ->!
+  "A variation on the threading macro which applies the same arg to a
+  sequence of functions, e.g.,
+
+  (->! 1
+       prn                              ; prints 1
+       #(prn (inc %1))                  ; prints 2
+       (fn [x] (prn (inc x))))          ; also prints 2
+  => 1"
+  [x & forms]
+  `(do
+     ~@(map (fn [form]
+              (if (and (seq? form)
+                       (not (#{'fn* 'fn} (first form))))
+                `(~(first form) ~x ~@(next form))
+                `(~form ~x)))
+            forms)
+     ~x))
