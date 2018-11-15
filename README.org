@@ -20,7 +20,6 @@ Sherlog provides APIs to
 (log/init! {:auth-type :profile
             :profile   (System/getenv "AWS_PROFILE")
             :region    "us-east-1"})
-
 #+end_src
 
 ** Querying Cloudwatch Logs
@@ -40,7 +39,6 @@ Examples:
 ;; search takes a map
 (log/search log-group {:id "id123" :log-type "event"} 3000)
 
-
 (log/tail log-group)
 ;; returns a log-seq
 #+end_src
@@ -55,6 +53,13 @@ encoding.
 ;; example
 (log/grep "my-s3-bucket" "2018/11" {:log-type "event"})
 #+end_src
+
+To output the stream to a file
+
+#+begin_src clojure
+(log/grep "my-bucket" "2018/11" {:token "some-token"} "/tmp/data.json")
+#+end_src
+
 
 ** Cloudwatch Metric and Subscription Filters
 
