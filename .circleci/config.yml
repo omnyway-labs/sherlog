@@ -1,27 +1,5 @@
 version: 2
 jobs:
-  unit-test:
-    parallelism: 1
-    working_directory: ~/sherlog
-    docker:
-      - image: circleci/clojure:latest
-    environment:
-      - SERVICE_NAME: sherlog
-      - AWS_PROFILE: staging
-    steps:
-      - checkout
-      - run: git clone https://${READ_BOT_TOKEN}@github.com/omnypay/omnypay-ci.git  ~/omnypay-ci
-      - run: ~/omnypay-ci/install-basic-deps.sh
-      - run: ~/omnypay-ci/set-aws-creds.sh
-      - restore_cache:
-          keys:
-            - deps-{{ checksum "deps.edn" }}
-      - run: clojure -Adev:test unit
-      - save_cache:
-          key: deps-{{ checksum "deps.edn" }}
-          paths:
-            - ~/.m2
-            - ~/.gitlibs
   release:
     parallelism: 1
     working_directory: ~/sherlog
@@ -32,25 +10,27 @@ jobs:
       - SERVICE_NAME: sherlog
       - GOROOT: ""
       - GOPATH: "/root/.go"
-      - AWS_PROFILE: staging
     steps:
       - checkout
-      - run: git clone https://${READ_BOT_TOKEN}@github.com/omnypay/omnypay-ci.git  ~/omnypay-ci
-      - run: ~/omnypay-ci/install-basic-deps.sh
-      - run: ~/omnypay-ci/install-release-deps.sh
-      - restore_cache:
-          keys:
-            - deps-{{ checksum "deps.edn" }}
+      - run: |
+          wget https://github.com/omnypay/rico/releases/download/0.1.4/semver-from-git.tar.bz2
+          tar jxvf semver-from-git.tar.bz2
+          sudo mv semver-from-git/bin/semver-from-git /usr/local/bin/semver-from-git && chmod +x /usr/local/bin/semver-from-git
+          sudo mv semver-from-git/lib/* /usr/local/lib/
+          sudo rm -rf semver-from-git.tar.bz2
+
+          wget https://github.com/aktau/github-release/releases/download/v0.7.2/linux-amd64-github-release.tar.bz2
+          tar jxvf linux-amd64-github-release.tar.bz2
+          sudo mv bin/linux/amd64/github-release /usr/local/bin/github-release
+          sudo chmod +x /usr/local/bin/github-release
+          sudo rm -f linux-amd64-github-release.tar.bz2
       - run: semver-from-git $VERSION_FILE
-      - run: export SEMVER=$(cat $VERSION_FILE); ~/omnypay-ci/release-lib.sh
+      - run: github-release release --user $CIRCLE_PROJECT_USERNAME --repo $CIRCLE_PROJECT_REPONAME --tag $(cat $VERSION_FILE)  --target $CIRCLE_SHA1
 workflows:
   version: 2
   build_test_release:
     jobs:
-      - unit-test
       - release:
-          requires:
-            - unit-test
           filters:
             branches:
               only: master

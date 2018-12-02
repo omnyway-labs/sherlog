@@ -1,37 +1,44 @@
+# sherlog
 
-Library to query logs in Cloudwatch and S3
+[![CircleCI](https://circleci.com/gh/omnyway-labs/sherlog.svg?style=svg)](https://circleci.com/gh/omnyway-labs/sherlog)
 
-Sherlog abstracts querying logs and creating realtime metrics from
-the log streams
+A Library to query logs in Cloudwatch and S3
+
+Sherlog abstracts querying logs and creating realtime metrics from the
+log streams
 
 Sherlog provides APIs to
-- Query and Cloudwatch Log Streams
-- Filter and Fetch logs in S3 using AWS S3-select
-- Create Metric Filters on Cloudwatch Logs
 
-* Usage
+-   Query and Cloudwatch Log Streams
+-   Filter and Fetch logs in S3 using AWS S3-select
+-   Create Metric Filters on Cloudwatch Logs
 
-** Initialize sherlog
+Usage
+=====
 
-#+begin_src clojure
+Initialize sherlog
+------------------
+
+``` {.clojure}
 (require '[sherlog.core :as log])
 (log/init! {:auth-type :profile
             :profile   (System/getenv "AWS_PROFILE")
             :region    "us-east-1"})
-#+end_src
+```
 
-** Querying Cloudwatch Logs
+Querying Cloudwatch Logs
+------------------------
 
-#+begin_src clojure
+``` {.clojure}
 (log/search log-group PATTERN DURATION-IN-SECS)
-#+end_src
+```
 
 Where PATTERN is a clojure map or a jq-like Pattern supported by
 Cloudwatch
 
 Examples:
 
-#+begin_src clojure
+``` {.clojure}
 (log/search log-group "ERROR" 3000)
 (log/search log-group "{ $.id = \"id123\" }" 3000)
 ;; search takes a map
@@ -39,60 +46,64 @@ Examples:
 
 (log/tail log-group)
 ;; returns a log-seq
-#+end_src
+```
 
-** Grepping Logs in S3
+Grepping Logs in S3
+-------------------
 
-Sherlog uses s3-select to *grep* logs in S3. Supports logs in JSON
+Sherlog uses s3-select to **grep** logs in S3. Supports logs in JSON
 encoding.
 
-#+begin_src clojure
+``` {.clojure}
 (log/grep s3-bucket prefix filters)
 ;; example
 (log/grep "my-s3-bucket" "2018/11" {:log-type "event"})
-#+end_src
+```
 
 To output the stream to a file
 
-#+begin_src clojure
+``` {.clojure}
 (log/grep "my-bucket" "2018/11" {:token "some-token"} "/tmp/data.json")
-#+end_src
+```
 
-** Cloudwatch Metric and Subscription Filters
+Cloudwatch Metric and Subscription Filters
+------------------------------------------
 
-Sherlog supports both Metric and Subscription Filters.
-To list the filters:
-#+begin_src clojure
+Sherlog supports both Metric and Subscription Filters. To list the
+filters:
+
+``` {.clojure}
 (log/list-filters log-group type)
-#+end_src
-where type is *:metric* or *:subscription*
+```
 
+where type is **:metric** or **:subscription**
 
 To create a Metric Filter, you could
 
-#+begin_src clojure
+``` {.clojure}
 (log/create-filter log-group name pattern namespace initial-value)
 ;; example:
 (log/create-filter :foo "my-metric" {:log-type "error"} "errors" 1)
 ;; this creates a realtime counter of errors in logs
 
 (log/delete-filter log-group name)
-#+end_src
+```
 
-#+begin_src clojure
+``` {.clojure}
 (log/find-metrics metric-namespace)
 (log/show-metric "AWS/Billing" "EstimatedCharges" :currency "1d")
-#+end_src
+```
 
-* License - Apache 2.0
+License - Apache 2.0
+====================
 
 Copyright 2018 Omnyway Inc.
 
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
+Licensed under the Apache License, Version 2.0 (the "License"); you may
+not use this file except in compliance with the License. You may obtain
+a copy of the License at
 
-[[http://www.apache.org/licenses/LICENSE-2.0]]
+<http://www.apache.org/licenses/LICENSE-2.0>
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
