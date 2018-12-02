@@ -1,6 +1,6 @@
 # sherlog
 
-A Library to query logs in Cloudwatch and S3
+A Clojure Library to query logs in Cloudwatch and S3
 
 Sherlog provides APIs to
 - Query and Cloudwatch Log Streams
@@ -56,7 +56,7 @@ Examples:
 ;; returns a log-seq
 #+end_src
 
-** Grepping Logs in S3
+** Grep S3 Logs using S3-select
 
 Sherlog uses s3-select to *grep* logs in S3. Currently supports only
 uncompressed JSON encoded logs.
@@ -74,9 +74,8 @@ To output the stream to a file
 (log/grep "my-bucket" "2018/11" {:token "some-token"} "/tmp/data.json")
 #+end_src
 
-** Cloudwatch Metric and Subscription Filters
+** Cloudwatch Metric Filters
 
-Sherlog supports both Metric and Subscription Filters.
 To list the filters:
 #+begin_src clojure
 (log/list-filters log-group type)
