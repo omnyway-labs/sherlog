@@ -8,8 +8,6 @@ Sherlog provides APIs to
 - Query and Cloudwatch Log Streams
 - Filter and Fetch logs in S3 using AWS S3-select
 - Create Metric Filters on Cloudwatch Logs
-- Query Stats from AWS X-ray logs
-- Generate Cloudwatch Events from Logs
 
 * Usage
 
@@ -60,7 +58,6 @@ To output the stream to a file
 (log/grep "my-bucket" "2018/11" {:token "some-token"} "/tmp/data.json")
 #+end_src
 
-
 ** Cloudwatch Metric and Subscription Filters
 
 Sherlog supports both Metric and Subscription Filters.
@@ -87,9 +84,18 @@ To create a Metric Filter, you could
 (log/show-metric "AWS/Billing" "EstimatedCharges" :currency "1d")
 #+end_src
 
-** X-ray Stats
+* License - Apache 2.0
 
-#+begin_src clojure
-(log/find-api-traces duration pattern)
-(log/find-api-stats duration)
-#+end_src
+Copyright 2018 Omnyway Inc.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+[[http://www.apache.org/licenses/LICENSE-2.0]]
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
