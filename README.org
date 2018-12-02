@@ -32,6 +32,8 @@ Other AWS auth-types:
 or {:auth-type :default}
 
 #+END_SRC
+Make sure you have the necessary IAM permissions to Query Logs in
+Cloudwatch and S3
 
 ** Querying Cloudwatch Logs
 
@@ -47,7 +49,7 @@ Examples:
 #+begin_src clojure
 (log/search log-group "ERROR" 3000)
 (log/search log-group "{ $.id = \"id123\" }" 3000)
-;; search takes a map
+;; search takes a map; This does an *and* of the entries in the map
 (log/search log-group {:id "id123" :log-type "event"} 3000)
 
 (log/tail log-group)
