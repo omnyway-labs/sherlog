@@ -2,9 +2,6 @@
 
 A Library to query logs in Cloudwatch and S3
 
-Sherlog abstracts querying logs and creating realtime metrics from
-the log streams
-
 Sherlog provides APIs to
 - Query and Cloudwatch Log Streams
 - Filter and Fetch logs in S3 using AWS S3-select
