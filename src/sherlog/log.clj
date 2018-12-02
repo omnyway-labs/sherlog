@@ -186,8 +186,3 @@
 (defn init! [config]
   (cred/init! config)
   (reset! client (make-client (or (:region config) "us-east-1"))))
-
-(comment
-  (init! {:auth-type :profile
-          :profile   :prod-core
-          :region    "us-east-1"}))
