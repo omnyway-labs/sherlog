@@ -15,9 +15,9 @@ Sherlog provides APIs to
 Add below git coordinates in deps.edn
 
 #+BEGIN_SRC clojure
-omnyway-labs/sherlog
-{:git/url "git@github.com:omnyway-labs/sherlog.git",
- :sha "0024223738ad02f9e825a9c51d0c6f6db10b953b"}
+{:deps {omnyway-labs/sherlog
+        {:git/url "git@github.com:omnyway-labs/sherlog.git",
+         :sha "0024223738ad02f9e825a9c51d0c6f6db10b953b"}}}
 #+END_SRC
 
 ** Initialize sherlog
