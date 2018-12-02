@@ -29,7 +29,7 @@ Add below git coordinates in deps.edn
             :region    "us-east-1"})
 #+end_src
 
-Support auth-types are
+Other AWS auth-types:
 #+BEGIN_SRC clojure
 {:auth-type :env} ;; uses the AWS SECRET environment variables
 or {:auth-type :default}
