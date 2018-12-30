@@ -22,9 +22,10 @@
 
 (defn select
   ([s3-bucket prefix filters]
-   (s3/query-prefix s3-bucket prefix filters))
+   (-> (s3/query s3-bucket prefix filters)
+       (s3/read-streams)))
   ([s3-bucket prefix filters out-file]
-   (-> (s3/query-prefix s3-bucket prefix filters)
+   (-> (s3/query s3-bucket prefix filters)
        (s3/write-streams out-file))))
 
 (defn find-api-traces [duration pattern]

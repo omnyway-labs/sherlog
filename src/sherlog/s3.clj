@@ -1,6 +1,9 @@
 (ns sherlog.s3
   (:require
-   [sherlog.cred :as cred])
+   [clojure.string :as str]
+   [clojure.java.io :as io]
+   [sherlog.cred :as cred]
+   [sherlog.util :as u])
   (:import
    [com.amazonaws.services.s3
     AmazonS3 AmazonS3ClientBuilder]
@@ -18,41 +21,39 @@
     ListObjectsV2Request]
    [java.io
     File FileOutputStream
-    InputStream OutputStream]
+    InputStream OutputStream
+    ByteArrayOutputStream]
    [com.amazonaws.util IOUtils]))
 
 (defonce client (atom nil))
 
-(defn get-client []
+(defn- get-client []
   @client)
 
-(defn make-client [region]
+(defn- make-client [region]
   (-> (AmazonS3ClientBuilder/standard)
       (.withCredentials (cred/cred-provider))
       (.withRegion region)
       .build))
 
-(defn omethods [obj]
-  (map #(.getName %) (-> obj class .getMethods)))
-
-(defn make-json-input []
+(defn- make-json-input []
   (doto (JSONInput.)
     (.withType "LINES")))
 
-(defn make-json-output []
+(defn- make-json-output []
   (doto (JSONOutput.)
     (.withRecordDelimiter "\n")))
 
-(defn make-input-serialization []
+(defn- make-input-serialization []
   (doto (InputSerialization.)
     (.withJson (make-json-input))
-    (.withCompressionType "NONE")))
+    (.withCompressionType "GZIP")))
 
-(defn make-output-serialization []
+(defn- make-output-serialization []
   (doto (OutputSerialization.)
     (.withJson (make-json-output))))
 
-(defn make-object-content-request [bucket key expression]
+(defn- make-object-content-request [bucket key expression]
   (doto (SelectObjectContentRequest.)
     (.withBucketName bucket)
     (.withKey key)
@@ -61,28 +62,39 @@
     (.withInputSerialization (make-input-serialization))
     (.withOutputSerialization (make-output-serialization))))
 
-(defn as-result [result]
+(defn- as-result [result]
   (->> (.getPayload result)
        (.getRecordsInputStream)))
 
-(defn out-file [filename]
+(defn- out-file [filename]
   (FileOutputStream. (File. filename)))
 
-(defn map->where-clause [filters]
+(defn- as-key-path [path]
+  (->> (str/split (name path) #"\.")
+       (map pr-str)
+       (str/join #".")))
+
+(defn- map->where-clause [filters]
   (if (map? filters)
     (letfn [(as-form [[k v]]
-              (format "s.%s = %s" (name k) (pr-str v)))]
+              (format "s.%s = '%s'" (as-key-path k) v))]
       (->> (map as-form filters)
            (interpose " and ")
            (apply str)
            (format "%s")))
     filters))
 
-(defn as-keys [xs]
+(defn make-expression [m]
+  (if (empty? m)
+    "select * from S3Object s"
+    (->> (map->where-clause m)
+         (str "select * from S3Object s where "))))
+
+(defn- as-keys [xs]
   {:token (.getNextContinuationToken xs)
    :keys  (map #(.getKey %) (.getObjectSummaries xs))})
 
-(defn list-keys* [bucket prefix token]
+(defn- list-keys* [bucket prefix token]
   (->> (doto (ListObjectsV2Request.)
          (.withBucketName bucket)
          (.withPrefix prefix)
@@ -98,23 +110,17 @@
       (recur (list-keys* bucket prefix token)
              (conj acc keys)))))
 
-(defn make-expression [m]
-  (if (empty? m)
-    "select * from S3Object s"
-    (->> (map->where-clause m)
-         (str "select * from S3Object s where "))))
-
-(defn query [bucket key filters]
+(defn- query-key* [bucket key filters]
   (->> (make-expression filters)
        (make-object-content-request bucket key)
        (.selectObjectContent (get-client))
        (as-result)))
 
-(defn query-prefix [bucket prefix filters]
+(defn query [bucket prefix filters]
   (->> (list-keys bucket prefix)
-       (map #(query bucket % filters))))
+       (map #(query-key* bucket % filters))))
 
-(defn write-file* [input-stream filename]
+(defn- write-file* [input-stream filename]
   (->> (FileOutputStream. (File. filename))
        (IOUtils/copy input-stream)))
 
@@ -124,6 +130,20 @@
       (doseq [in input-streams]
         (IOUtils/copy in output-stream))
       (write-file* input-streams output-stream))))
+
+(defn- read-stream* [input-stream]
+  (with-open [in input-stream
+              out (ByteArrayOutputStream.)]
+    (IOUtils/copy in out)
+    (-> (.toByteArray out)
+        (String.)
+        (str/trim)
+        (str/split #"\n")
+        (u/deserialize))))
+
+(defn read-streams [input-streams]
+  (-> (map read-stream* input-streams)
+      (flatten)))
 
 (defn init! [{:keys [region] :as auth}]
   (let [region (or region "us-east-1")]
