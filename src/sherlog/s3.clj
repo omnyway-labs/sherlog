@@ -138,12 +138,12 @@
     (-> (.toByteArray out)
         (String.)
         (str/trim)
-        (str/split #"\n")
-        (u/deserialize))))
+        (str/split #"\n"))))
 
 (defn read-streams [input-streams]
-  (-> (map read-stream* input-streams)
-      (flatten)))
+  (->> (map read-stream* input-streams)
+       (flatten)
+       (remove nil?)))
 
 (defn init! [{:keys [region] :as auth}]
   (let [region (or region "us-east-1")]
