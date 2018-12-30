@@ -24,6 +24,10 @@ omnyway-labs/sherlog
 (log/init! {:auth-type :profile
             :profile   (System/getenv "AWS_PROFILE")
             :region    "us-east-1"})
+
+or initialize just the service needed
+(log/init! auth service)
+;;where service could be any of :log :metric :s3 or :xray
 #+end_src
 
 Other AWS auth-types:
@@ -56,15 +60,15 @@ Examples:
 ;; returns a log-seq
 #+end_src
 
-** Grep S3 Logs using S3-select
+** Fetch Logs in S3 using S3-select
 
 Sherlog uses s3-select to *grep* logs in S3. Currently supports only
-uncompressed JSON encoded logs.
+GZIPPed JSON encoded logs.
 
 #+begin_src clojure
-(log/grep s3-bucket prefix filters)
+(log/select s3-bucket prefix filters)
 ;; example
-(log/grep "my-s3-bucket" "2018/11" {:log-type "event"})
+(log/select "my-s3-bucket" "2018/11" {:log-type "event"})
 #+end_src
 returns a lazy-seq of the S3 logs.
 
@@ -78,7 +82,7 @@ To output the stream to a file
 
 To list the filters:
 #+begin_src clojure
-(log/list-filters log-group type)
+(log/list-metric-filters log-group type)
 #+end_src
 where type is *:metric* or *:subscription*
 
@@ -86,12 +90,12 @@ where type is *:metric* or *:subscription*
 To create a Metric Filter, you could
 
 #+begin_src clojure
-(log/create-filter log-group name pattern namespace initial-value)
+(log/create-metric-filter log-group name pattern namespace initial-value)
 ;; example:
-(log/create-filter :foo "my-metric" {:log-type "error"} "errors" 1)
+(log/create-metric-filter :foo "my-metric" {:log-type "error"} "errors" 1)
 ;; this creates a realtime counter of errors in logs
 
-(log/delete-filter log-group name)
+(log/delete-metric-filter log-group name)
 #+end_src
 
 #+begin_src clojure

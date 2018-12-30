@@ -28,10 +28,10 @@
    (-> (s3/query s3-bucket prefix filters)
        (s3/write-streams out-file))))
 
-(defn find-api-traces [duration pattern]
+(defn list-xray-traces [duration pattern]
   (xray/list-traces duration pattern))
 
-(defn find-api-stats [duration]
+(defn find-xray-stats [duration]
   (xray/stats duration))
 
 (defn find-metrics
@@ -47,10 +47,8 @@
        (sort-by :timestamp)
        (reverse)))
 
-(defn list-filters [log-group type]
-  (condp = type
-    :metric       (log/list-metric-filters log-group)
-    :subscription (log/list-subscriptions log-group)))
+(defn list-metric-filters [log-group type]
+  (log/list-metric-filters log-group))
 
 (defn delete-metric-filter [log-group name]
   (log/delete-metric-filter log-group name))
