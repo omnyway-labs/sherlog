@@ -143,7 +143,7 @@
 (defn read-streams [input-streams]
   (->> (map read-stream* input-streams)
        (flatten)
-       (remove nil?)))
+       (remove empty?)))
 
 (defn init! [{:keys [region] :as auth}]
   (let [region (or region "us-east-1")]
