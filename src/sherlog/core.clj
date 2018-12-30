@@ -61,12 +61,20 @@
 (defn list-alarms []
   (metric/list-alarms))
 
-(defn init! [auth]
-  (->! auth
-       log/init!
-       xray/init!
-       metric/init!
-       s3/init!))
+(defn init!
+  ([auth]
+   (->! auth
+        log/init!
+        xray/init!
+        metric/init!
+        s3/init!))
+  ([auth service]
+   (condp = service
+     :log    (log/init! auth)
+     :xray   (xray/init! auth)
+     :metric (metric/init! auth)
+     :s3     (s3/init! auth)
+     nil)))
 
 (comment
   (init! {:auth-type :profile
