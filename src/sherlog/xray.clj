@@ -82,9 +82,7 @@
            (.withStartTime start)
            (.withEndTime   end)
            (.withNextToken token)
-           (.withSampling false)
-           ;(.withFilterExpression pattern)
-           )
+           (.withSampling false))
          (.getTraceSummaries (get-client))
          (as-trace-result))))
 
