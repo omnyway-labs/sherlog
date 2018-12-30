@@ -1,5 +1,6 @@
 (ns sherlog.util
   (:require
+   [clojure.string :as str]
    [clj-time.core :as t]
    [clj-time.coerce :as c])
   (:import
@@ -72,3 +73,8 @@
                 `(~form ~x)))
             forms)
      ~x))
+
+(defn arn-name [arn]
+  (->> (str/split arn #":")
+       (last)
+       (keyword)))
