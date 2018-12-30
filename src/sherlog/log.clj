@@ -14,6 +14,8 @@
     GetLogEventsRequest
     PutMetricFilterRequest
     DeleteMetricFilterRequest
+    PutSubscriptionFilterRequest
+    DeleteSubscriptionFilterRequest
     OrderBy
     MetricTransformation]))
 
@@ -87,6 +89,20 @@
          (.withLogGroupName log-group)
          (.withFilterName name))
        (.deleteMetricFilter (get-client))))
+
+(defn create-subscription-filter [log-group name pattern function-arn]
+  (->> (doto (PutSubscriptionFilterRequest.)
+         (.withLogGroupName log-group)
+         (.withFilterName name)
+         (.withFilterPattern pattern)
+         (.withDestinationArn function-arn))
+       (.putSubscriptionFilter (get-client))))
+
+(defn delete-subscription-filter [log-group name]
+  (->> (doto (DeleteSubscriptionFilterRequest.)
+         (.withLogGroupName log-group)
+         (.withFilterName name))
+       (.deleteSubscriptionFilter (get-client))))
 
 (defn get-log-events
   ([log-group log-stream start-time]
