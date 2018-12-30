@@ -14,7 +14,7 @@ Add below git coordinates in deps.edn
 #+BEGIN_SRC clojure
 omnyway-labs/sherlog
 {:git/url "git@github.com:omnyway-labs/sherlog.git",
- :sha "0024223738ad02f9e825a9c51d0c6f6db10b953b"}
+ :sha "637c9383b0a9ef830b09981d62bb2576611a70f2"}
 #+END_SRC
 
 ** Initialize sherlog
@@ -67,16 +67,26 @@ GZIPPed JSON encoded logs.
 
 #+begin_src clojure
 (log/select s3-bucket prefix filters)
-;; example
-(log/select "my-s3-bucket" "2018/11" {:log-type "event"})
-#+end_src
 returns a lazy-seq of the S3 logs.
 
-To output the stream to a file
-
-#+begin_src clojure
-(log/grep "my-bucket" "2018/11" {:token "some-token"} "/tmp/data.json")
+;; we can optionally write the results to a file
+(log/select "my-bucket" prefix filters "/tmp/data.json")
 #+end_src
+
+Let us say we have some data in a S3 bucket like below:
+#+BEGIN_SRC json
+{"id":1,"name":"foo.bar","address":"Las Vegas","car":"golf", "context": {"request-id": "Root-1=abc"}}
+{"id":2,"name":"Ben Mostafa","address":"Las Vegas","car":"Mustang"}
+#+END_SRC
+
+We could use simple maps as filters
+
+#+BEGIN_SRC clojure
+(log/select "my-bucket" "2018/12/10" {:id 1})
+
+;; or for nested data use a dotted notation
+(log/select "my-bucket" "2018/12/10" {:context.request-id "Root-1=abc"})
+#+END_SRC
 
 ** Cloudwatch Metric Filters
 
