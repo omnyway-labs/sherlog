@@ -21,7 +21,11 @@
     MetricDataQuery
     Metric
     MetricStat
-    Statistic]))
+    Statistic
+    DescribeAlarmsRequest
+    PutMetricAlarmRequest
+    ComparisonOperator
+    Dimension]))
 
 (defonce client (atom nil))
 
@@ -133,6 +137,56 @@
        (map :name)
        distinct
        sort))
+
+(defn as-operator [c]
+  (condp = c
+    ">=" (ComparisonOperator/valueOf "GreaterThanOrEqualToThreshold")
+    ">"  (ComparisonOperator/valueOf "GreaterThanThreshold")
+    "<=" (ComparisonOperator/valueOf "LessThanOrEqualToThreshold")
+    "<"  (ComparisonOperator/valueOf "LessThanThreshold")))
+
+(defn as-alarms [xs]
+  {:token  (.getNextToken xs)
+   :alarms (map (fn [a]
+                  {:name      (.getAlarmName a)
+                   :metric    (.getMetricName a)
+                   :period    (.getPeriod a)
+                   :statistic (.getStatistic a)
+                   :threshold (.getThreshold a)
+                   :actions   (map u/arn-name (.getAlarmActions a))
+                   :missing   (.getTreatMissingData a)})
+                (.getMetricAlarms xs))})
+
+(defn list-alarms* [token]
+  (->> (doto (DescribeAlarmsRequest.)
+         (.withNextToken token))
+       (.describeAlarms (get-client))
+       (as-alarms)))
+
+(defn list-alarms []
+  (loop [{:keys [token alarms]}  (list-alarms* nil)
+         acc  []]
+    (if-not token
+      (conj acc alarms)
+      (recur (list-alarms* token)
+             (conj acc alarms)))))
+
+(defn create-alarm [{:keys [alarm-name namespace
+                            metric-name operator
+                            threshold
+                            action period]}]
+  (->> (doto (PutMetricAlarmRequest.)
+         (.withAlarmName alarm-name)
+         (.withComparisonOperator (as-operator operator))
+         (.withMetricName metric-name)
+         (.withPeriod period)
+         (.withEvaluationPeriods (int 1))
+         (.withActionsEnabled true)
+         (.withStatistic "Average")
+         (.withThreshold threshold)
+         (.withAlarmActions action)
+         (.withTreatMissingData "ignore"))
+       (.putMetricAlarmRequest (get-client))))
 
 (defn init! [config]
   (cred/init! config)
