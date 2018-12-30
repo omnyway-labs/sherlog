@@ -1,6 +1,7 @@
 (ns sherlog.util
   (:require
    [clojure.string :as str]
+   [cheshire.core :as json]
    [clj-time.core :as t]
    [clj-time.coerce :as c])
   (:import
@@ -78,3 +79,6 @@
   (->> (str/split arn #":")
        (last)
        (keyword)))
+
+(defn deserialize [xs]
+  (map #(json/parse-string % true) xs))
