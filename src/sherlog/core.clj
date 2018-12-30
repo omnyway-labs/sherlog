@@ -1,4 +1,5 @@
 (ns sherlog.core
+  (:refer-clojure :exclude [select])
   (:require
    [sherlog.log :as log]
    [sherlog.xray :as xray]
@@ -19,17 +20,12 @@
   ([log-group streams pattern duration]
    (log/search-streams log-group streams pattern duration)))
 
-(defn list-filters [log-group type]
-  (condp = type
-    :metric       (log/list-metric-filters log-group)
-    :subscription (log/list-subscriptions log-group)))
-
-(defn delete-filter [log-group name]
-  (log/delete-metric-filter log-group name))
-
-(defn create-filter [log-group name pattern namespace value]
-  (log/create-metric-filter log-group name
-                            pattern namespace value))
+(defn select
+  ([s3-bucket prefix filters]
+   (s3/query-prefix s3-bucket prefix filters))
+  ([s3-bucket prefix filters out-file]
+   (-> (s3/query-prefix s3-bucket prefix filters)
+       (s3/write-streams out-file))))
 
 (defn find-api-traces [duration pattern]
   (xray/list-traces duration pattern))
@@ -50,12 +46,20 @@
        (sort-by :timestamp)
        (reverse)))
 
-(defn grep
-  ([s3-bucket prefix filters]
-   (s3/query-prefix s3-bucket prefix filters))
-  ([s3-bucket prefix filters out-file]
-   (-> (s3/query-prefix s3-bucket prefix filters)
-       (s3/write-streams out-file))))
+(defn list-filters [log-group type]
+  (condp = type
+    :metric       (log/list-metric-filters log-group)
+    :subscription (log/list-subscriptions log-group)))
+
+(defn delete-metric-filter [log-group name]
+  (log/delete-metric-filter log-group name))
+
+(defn create-metric-filter [log-group name pattern namespace value]
+  (log/create-metric-filter log-group name
+                            pattern namespace value))
+
+(defn list-alarms []
+  (metric/list-alarms))
 
 (defn init! [auth]
   (->! auth
