@@ -1,34 +1,16 @@
 (ns sherlog.log
   (:require
    [clojure.string :as str]
-   [sherlog.cred :as cred]
-   [sherlog.util :as u])
+   [sherlog.util :as u]
+   [sherlog.log.client
+    :as client
+    :refer [get-client]])
   (:import
-   [com.amazonaws.regions Regions]
-   [com.amazonaws.services.logs AWSLogsClientBuilder]
    [com.amazonaws.services.logs.model
     FilterLogEventsRequest
     DescribeLogStreamsRequest
-    DescribeSubscriptionFiltersRequest
-    DescribeMetricFiltersRequest
     GetLogEventsRequest
-    PutMetricFilterRequest
-    DeleteMetricFilterRequest
-    PutSubscriptionFilterRequest
-    DeleteSubscriptionFilterRequest
-    OrderBy
-    MetricTransformation]))
-
-(defonce client (atom nil))
-
-(defn- make-client [region]
-  (-> (AWSLogsClientBuilder/standard)
-      (.withCredentials (cred/cred-provider))
-      (.withRegion region)
-      .build))
-
-(defn- get-client []
-  @client)
+    OrderBy]))
 
 (defn- as-events [events]
   {:token (.getNextToken events)
@@ -37,72 +19,6 @@
 (defn- as-log-events [events]
   {:token (.getNextForwardToken events)
    :events (map #(.getMessage %) (.getEvents events))})
-
-(defn- as-metric [metric]
-  {:log-group (.getLogGroupName metric)
-   :created   (.getCreationTime metric)
-   :pattern   (.getFilterPattern metric)
-   :name      (.getFilterName metric)})
-
-(defn- as-metric-filters [metrics]
-  {:token   (.getNextToken metrics)
-   :filters (map as-metric (.getMetricFilters metrics))})
-
-(defn list-subscriptions [log-group]
-  (->> (doto (DescribeSubscriptionFiltersRequest.)
-         (.withLogGroupName log-group))
-       (.describeSubscriptionFilters (get-client))))
-
-(defn- list-metric-filters* [log-group token]
-  (->> (doto (DescribeMetricFiltersRequest.)
-         (.withLogGroupName log-group)
-         (.withNextToken token))
-       (.describeMetricFilters (get-client))
-       (as-metric-filters)))
-
-(defn list-metric-filters [log-group]
-  (loop [{:keys [token filters]} (list-metric-filters* log-group nil)
-           acc []]
-      (if-not token
-        (-> (conj acc filters)
-            (flatten))
-        (recur (list-metric-filters* log-group token)
-               (conj acc filters)))))
-
-(defn- make-metric-transformation [namespace name value]
-  (doto (MetricTransformation.)
-    (.withMetricName name)
-    (.withMetricValue value)
-    (.withMetricNamespace namespace)))
-
-(defn create-metric-filter [log-group name pattern namespace value]
-  (let [metric-xf [(make-metric-transformation namespace name value)]]
-    (->> (doto (PutMetricFilterRequest.)
-           (.withLogGroupName log-group)
-           (.withFilterName name)
-           (.withFilterPattern pattern)
-           (.withMetricTransformations metric-xf))
-         (.putMetricFilter (get-client)))))
-
-(defn delete-metric-filter [log-group name]
-  (->> (doto (DeleteMetricFilterRequest.)
-         (.withLogGroupName log-group)
-         (.withFilterName name))
-       (.deleteMetricFilter (get-client))))
-
-(defn create-subscription-filter [log-group name pattern function-arn]
-  (->> (doto (PutSubscriptionFilterRequest.)
-         (.withLogGroupName log-group)
-         (.withFilterName name)
-         (.withFilterPattern pattern)
-         (.withDestinationArn function-arn))
-       (.putSubscriptionFilter (get-client))))
-
-(defn delete-subscription-filter [log-group name]
-  (->> (doto (DeleteSubscriptionFilterRequest.)
-         (.withLogGroupName log-group)
-         (.withFilterName name))
-       (.deleteSubscriptionFilter (get-client))))
 
 (defn get-log-events
   ([log-group log-stream start-time]
@@ -200,5 +116,4 @@
                (conj acc events))))))
 
 (defn init! [config]
-  (cred/init! config)
-  (reset! client (make-client (or (:region config) "us-east-1"))))
+  (client/init! config))

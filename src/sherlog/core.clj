@@ -2,6 +2,7 @@
   (:refer-clojure :exclude [select])
   (:require
    [sherlog.log :as log]
+   [sherlog.log.filter :as logf]
    [sherlog.xray :as xray]
    [sherlog.metric :as metric]
    [sherlog.s3 :as s3]
@@ -47,15 +48,16 @@
        (sort-by :timestamp)
        (reverse)))
 
-(defn list-metric-filters [log-group type]
-  (log/list-metric-filters log-group))
+(defn list-filters [log-group type]
+  (logf/list-all log-group))
 
-(defn delete-metric-filter [log-group name]
-  (log/delete-metric-filter log-group name))
+(defn delete-filter [log-group name]
+  (logf/delete log-group name))
 
-(defn create-metric-filter [log-group name pattern namespace value]
-  (log/create-metric-filter log-group name
-                            pattern namespace value))
+(defn create-filter [log-group name pattern namespace value]
+  (logf/create log-group name
+               pattern namespace
+               value))
 
 (defn list-alarms []
   (metric/list-alarms))
