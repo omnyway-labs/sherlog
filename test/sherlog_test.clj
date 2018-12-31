@@ -26,22 +26,32 @@
                (first)
                (select-keys [:id :context]))))))
 
-(deftest ^:integration log-search-test
-  (s/init! auth :log)
-  (let [log-group "sherlog-test"
-        log-stream "test-stream"
-        msg        {:a "foo"
-                    :b "bar"
-                    :c {:d "baz"}
-                    :rand (rand-int 10)}]
+(def log-group "sherlog-test")
+(def log-stream "test-stream")
+
+(defn log-fixture [f]
+  (try
+    (s/init! auth :log)
     (in/create-log-group log-group)
     (in/create-log-stream log-group log-stream)
-    (->> (json/generate-string msg)
-         (in/put-event log-group log-stream))
-    (Thread/sleep 4000)
-    (is (= msg
-           (-> (s/search log-group {:a "foo"} 5)
-               (flatten)
-               (u/deserialize)
-               (first))))
-    (in/delete-log-group log-group)))
+    (f)
+    (catch Exception e
+      nil)
+    (finally
+      (in/delete-log-group log-group))))
+
+(deftest ^:integration log-search-test
+  (let [msg {:a    "foo"
+             :b    "bar"
+             :c    {:d "baz"}
+             :rand (rand-int 10)}]
+    (log-fixture
+     (fn []
+       (->> (json/generate-string msg)
+            (in/put-event log-group log-stream))
+       (Thread/sleep 4000)
+       (is (= msg
+              (-> (s/search log-group {:a "foo"} 5)
+                  (flatten)
+                  (u/deserialize)
+                  (first))))))))
