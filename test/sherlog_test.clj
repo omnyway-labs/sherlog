@@ -55,3 +55,18 @@
                   (flatten)
                   (u/deserialize)
                   (first))))))))
+
+(deftest ^:integration log-filter-test
+  (let [filter-name "sherlog-filter"]
+    (log-fixture
+     (fn []
+       (s/create-filter :log-group log-group
+                        :name      filter-name
+                        :pattern   {:a "foo"}
+                        :namespace "sherlog"
+                      :value     "1")
+       (let [filters (s/list-filters log-group)]
+         (is (= 1 (count filters)))
+         (is (= filter-name (-> filters first :name)))
+         (s/delete-filter log-group filter-name)
+         (is (= 0 (count (s/list-filters log-group)))))))))

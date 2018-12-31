@@ -3,7 +3,6 @@
   (:require
    [sherlog.log :as log]
    [sherlog.log.filter :as logf]
-   [sherlog.xray :as xray]
    [sherlog.metric :as metric]
    [sherlog.s3 :as s3]
    [sherlog.util :refer [->!]]))
@@ -29,11 +28,18 @@
    (-> (s3/query s3-bucket prefix filters)
        (s3/write-streams out-file))))
 
-(defn list-xray-traces [duration pattern]
-  (xray/list-traces duration pattern))
+(defn list-filters [log-group]
+  (logf/list-all log-group))
 
-(defn find-xray-stats [duration]
-  (xray/stats duration))
+(defn delete-filter [log-group name]
+  (logf/delete log-group name))
+
+(defn create-filter [& {:keys [log-group name pattern
+                               namespace value]}]
+  (logf/create log-group name
+               (log/make-pattern pattern)
+               namespace
+               value))
 
 (defn find-metrics
   ([namespace]
@@ -48,36 +54,17 @@
        (sort-by :timestamp)
        (reverse)))
 
-(defn list-filters [log-group type]
-  (logf/list-all log-group))
-
-(defn delete-filter [log-group name]
-  (logf/delete log-group name))
-
-(defn create-filter [log-group name pattern namespace value]
-  (logf/create log-group name
-               pattern namespace
-               value))
-
 (defn list-alarms []
   (metric/list-alarms))
 
 (defn init!
   ([auth]
-   (->! auth
-        log/init!
-        xray/init!
-        metric/init!
-        s3/init!))
+   (log/init! auth)
+   (metric/init! auth)
+   (s3/init! auth))
   ([auth service]
    (condp = service
      :log    (log/init! auth)
-     :xray   (xray/init! auth)
      :metric (metric/init! auth)
      :s3     (s3/init! auth)
      nil)))
-
-(comment
-  (init! {:auth-type :profile
-          :profile   :prod-core
-          :region    "us-east-1"}))

@@ -27,7 +27,7 @@ omnyway-labs/sherlog
 
 or initialize just the service needed
 (log/init! auth service)
-;;where service could be any of :log :metric :s3 or :xray
+;;where service could be any of :log :metric or :s3
 #+end_src
 
 Other AWS auth-types:
@@ -92,21 +92,21 @@ We could use simple maps as filters
 
 To list the filters:
 #+begin_src clojure
-(log/list-metric-filters log-group type)
+(log/list-filters log-group)
 #+end_src
-where type is *:metric* or *:subscription*
-
 
 To create a Metric Filter, you could
 
 #+begin_src clojure
-(log/create-metric-filter log-group name pattern namespace initial-value)
+(log/create-filter log-group name pattern namespace initial-value)
 ;; example:
-(log/create-metric-filter :foo "my-metric" {:log-type "error"} "errors" 1)
+(log/create-filter :foo "my-metric" {:log-type "error"} "errors" 1)
 ;; this creates a realtime counter of errors in logs
 
-(log/delete-metric-filter log-group name)
+(log/delete-filter log-group name)
 #+end_src
+
+** Metrics from Filters
 
 #+begin_src clojure
 (log/find-metrics metric-namespace)
