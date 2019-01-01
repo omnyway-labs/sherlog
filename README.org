@@ -14,32 +14,24 @@ Add below git coordinates in deps.edn
 #+BEGIN_SRC clojure
 omnyway-labs/sherlog
 {:git/url "git@github.com:omnyway-labs/sherlog.git",
- :sha "637c9383b0a9ef830b09981d62bb2576611a70f2"}
+ :sha "f1c370711a5b8949af755c3f9997dcf441ba6175"}
 #+END_SRC
 
-** Initialize sherlog
+** Querying Cloudwatch Logs
 
-#+begin_src clojure
-(require '[sherlog.core :as log])
+Make sure you have the necessary IAM permissions to Query Logs in
+Cloudwatch and S3
+
+#+BEGIN_SRC clojure
+(require '[sherlog.log :as log])
 (log/init! {:auth-type :profile
             :profile   (System/getenv "AWS_PROFILE")
             :region    "us-east-1"})
-
-or initialize just the service needed
-(log/init! auth service)
-;;where service could be any of :log :metric or :s3
-#+end_src
-
+#+END_SRC
 Other AWS auth-types:
 #+BEGIN_SRC clojure
 {:auth-type :env} ;; uses the AWS SECRET environment variables
 or {:auth-type :default}
-
-#+END_SRC
-Make sure you have the necessary IAM permissions to Query Logs in
-Cloudwatch and S3
-
-** Querying Cloudwatch Logs
 
 #+begin_src clojure
 (log/search log-group PATTERN DURATION-IN-SECS)
@@ -47,7 +39,6 @@ Cloudwatch and S3
 
 Where PATTERN is a clojure map or a jq-like Pattern supported by
 Cloudwatch
-
 Examples:
 
 #+begin_src clojure
@@ -59,34 +50,6 @@ Examples:
 (log/tail log-group)
 ;; returns a log-seq
 #+end_src
-
-** Fetch Logs in S3 using S3-select
-
-Sherlog uses s3-select to *grep* logs in S3. Currently supports only
-GZIPPed JSON encoded logs.
-
-#+begin_src clojure
-(log/select s3-bucket prefix filters)
-returns a lazy-seq of the S3 logs.
-
-;; we can optionally write the results to a file
-(log/select "my-bucket" prefix filters "/tmp/data.json")
-#+end_src
-
-Let us say we have some data in a S3 bucket like below:
-#+BEGIN_SRC json
-{"id":1,"name":"foo.bar","address":"Las Vegas","car":"golf", "context": {"request-id": "Root-1=abc"}}
-{"id":2,"name":"Ben Mostafa","address":"Las Vegas","car":"Mustang"}
-#+END_SRC
-
-We could use simple maps as filters
-
-#+BEGIN_SRC clojure
-(log/select "my-bucket" "2018/12/10" {:id 1})
-
-;; or for nested data use a dotted notation
-(log/select "my-bucket" "2018/12/10" {:context.request-id "Root-1=abc"})
-#+END_SRC
 
 ** Cloudwatch Metric Filters
 
@@ -108,10 +71,53 @@ To create a Metric Filter, you could
 
 ** Metrics from Filters
 
+#+BEGIN_SRC clojure
+(require '[sherlog.metric :as metric])
+(metric/init! {:auth-type :profile
+               :profile   (System/getenv "AWS_PROFILE")
+               :region    "us-east-1"})
+#+END_SRC
+
 #+begin_src clojure
-(log/find-metrics metric-namespace)
-(log/show-metric "AWS/Billing" "EstimatedCharges" :currency "1d")
+(metric/find metric-namespace)
+(metric/show "AWS/Billing" "EstimatedCharges" :currency "1d")
 #+end_src
+
+
+** Fetch Logs in S3 using S3-select
+
+Sherlog uses s3-select to *grep* logs in S3. Currently supports only
+GZIPPed JSON encoded logs.
+
+#+BEGIN_SRC clojure
+(require '[sherlog.s3 :as s3])
+(s3/init! {:auth-type :profile
+           :profile   (System/getenv "AWS_PROFILE")
+           :region    "us-east-1"})
+#+END_SRC
+
+#+begin_src clojure
+(s3/select s3-bucket prefix filters)
+returns a lazy-seq of the S3 logs.
+
+;; we can optionally write the results to a file
+(s3/select "my-bucket" prefix filters "/tmp/data.json")
+#+end_src
+
+Let us say we have some data in a S3 bucket like below:
+#+BEGIN_SRC json
+{"id":1,"name":"foo.bar","address":"Las Vegas","car":"golf", "context": {"request-id": "Root-1=abc"}}
+{"id":2,"name":"Ben Mostafa","address":"Las Vegas","car":"Mustang"}
+#+END_SRC
+
+We could use simple maps as filters
+
+#+BEGIN_SRC clojure
+(s3/select "my-bucket" "2018/12/10" {:id 1})
+
+;; or for nested data use a dotted notation
+(s3/select "my-bucket" "2018/12/10" {:context.request-id "Root-1=abc"})
+#+END_SRC
 
 * License - Apache 2.0
 
