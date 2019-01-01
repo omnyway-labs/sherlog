@@ -2,72 +2,10 @@
   (:require
    [clojure.string :as str]
    [sherlog.util :as u]
-   [sherlog.log.client
-    :as client
-    :refer [get-client]])
-  (:import
-   [com.amazonaws.services.logs.model
-    FilterLogEventsRequest
-    DescribeLogStreamsRequest
-    GetLogEventsRequest
-    OrderBy]))
-
-(defn- as-events [events]
-  {:token (.getNextToken events)
-   :events (map #(.getMessage %) (.getEvents events))})
-
-(defn- as-log-events [events]
-  {:token (.getNextForwardToken events)
-   :events (map #(.getMessage %) (.getEvents events))})
-
-(defn get-log-events
-  ([log-group log-stream start-time]
-   (->> (doto (GetLogEventsRequest.)
-         (.withLogStreamName log-stream)
-         (.withLogGroupName log-group)
-         (.withStartTime start-time)
-         (.withStartFromHead false))
-       (.getLogEvents (get-client))
-       (as-log-events)))
-  ([log-group log-stream start-time token]
-   (->> (doto (GetLogEventsRequest.)
-         (.withLogStreamName log-stream)
-         (.withLogGroupName log-group)
-         (.withNextToken token)
-         (.withStartTime start-time)
-         (.withStartFromHead false))
-       (.getLogEvents (get-client))
-       (as-log-events))))
-
-(defn- filter-log
-  ([log-group pattern start-time token]
-   (->> (doto (FilterLogEventsRequest.)
-         (.withFilterPattern pattern)
-         (.withLogGroupName log-group)
-         (.withStartTime start-time)
-         (.withNextToken token))
-       (.filterLogEvents (get-client))
-       (as-events)))
-  ([log-group log-streams pattern start-time token]
-   (->> (doto (FilterLogEventsRequest.)
-          (.withFilterPattern pattern)
-          (.withLogGroupName log-group)
-          (.withLogStreamNames log-streams)
-          (.withStartTime start-time)
-          (.withNextToken token)
-          (.withInterleaved true))
-        (.filterLogEvents (get-client))
-        (as-events))))
-
-(defn latest-log-stream [log-group]
-  (->> (doto (DescribeLogStreamsRequest.)
-        (.withOrderBy (OrderBy/valueOf "LastEventTime"))
-        (.withDescending true)
-        (.withLogGroupName log-group))
-       (.describeLogStreams (get-client))
-       (.getLogStreams)
-       (first)
-       (.getLogStreamName)))
+   [sherlog.log.client :as client]
+   [sherlog.log.filter :as filter]
+   [sherlog.log.event :as event]
+   [sherlog.log.stream :as stream]))
 
 (defn make-pattern [filters]
   (if (map? filters)
@@ -79,41 +17,52 @@
            (format "{%s}")))
     filters))
 
-(defn log-seq
-  "Returns a lazy sequence of log events from Cloudwatch"
-  ([group stream]
-   (let [{:keys [token events]}
-         (get-log-events group stream (u/start-time))]
-     (u/rate-limit!)
-     (log-seq group stream events token)))
-  ([group stream next-token]
-   (let [{:keys [token events]}
-         (get-log-events group stream nil next-token)]
-     (u/rate-limit!)
-     (log-seq group stream events token)))
-  ([group stream events token]
-   (lazy-seq (concat events (log-seq group stream token)))))
+(defn list-filters [log-group]
+  (filter/list-all log-group))
 
-(defn search-group [log-group pattern duration]
-  (let [start (u/now-minus-secs duration)
-        pattern (make-pattern pattern)]
-    (loop [{:keys [token events]} (filter-log log-group pattern start nil)
-           acc []]
-      (if-not token
-        (conj acc events)
-        (recur (filter-log log-group pattern start token)
-               (conj acc events))))))
+(defn tail
+  ([log-group]
+   (let [stream (stream/latest log-group)]
+     (event/log-seq log-group stream)))
+  ([log-group log-stream]
+   (event/log-seq log-group log-stream)))
 
-(defn search-streams [log-group streams pattern duration]
-  (let [start (u/now-minus-secs duration)
-        pattern (make-pattern pattern)]
-     (loop [{:keys [token events]}
-           (filter-log log-group streams pattern start nil)
-           acc []]
-      (if-not token
-        (conj acc events)
-        (recur (filter-log log-group streams pattern start token)
-               (conj acc events))))))
+(defn search
+  ([log-group pattern duration]
+   (let [pattern (make-pattern pattern)]
+     (event/search log-group pattern duration)))
+  ([log-group streams pattern duration]
+   (let [pattern (make-pattern pattern)]
+     (event/search log-group streams pattern duration))))
+
+(defn put-event
+  ([log-group log-stream msg]
+   (->> (stream/get-sequence-token log-group log-stream)
+        (event/put! log-group log-stream msg)))
+  ([log-group log-stream msg token]
+   (event/put! log-group log-stream msg token)))
+
+(defn list-filters [log-group]
+  (filter/list-all log-group))
+
+(defn delete-filter [log-group filter-name]
+  (filter/delete log-group filter-name))
+
+(defn create-filter [& {:keys [log-group name pattern namespace value]}]
+  (filter/create :log-group log-group
+                 :name      name
+                 :pattern   pattern
+                 :namespace namespace
+                 :value     value))
+
+(defn create-group [log-group-name]
+  (stream/create-group log-group-name))
+
+(defn delete-group [log-group]
+  (stream/delete-group log-group))
+
+(defn create-stream [log-group log-stream]
+  (stream/create log-group log-stream))
 
 (defn init! [config]
   (client/init! config))

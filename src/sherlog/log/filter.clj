@@ -26,7 +26,7 @@
   {:token   (.getNextToken metrics)
    :filters (map as-metric (.getMetricFilters metrics))})
 
-(defn create [log-group name pattern namespace value]
+(defn create [& {:keys [log-group name pattern namespace value]}]
   (let [metric-xf [(make-metric-transformation namespace name value)]]
     (->> (doto (PutMetricFilterRequest.)
            (.withLogGroupName log-group)

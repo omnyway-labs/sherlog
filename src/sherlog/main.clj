@@ -1,19 +1,21 @@
 (ns sherlog.main
   (:require
-   [sherlog.core :as core]))
+   [sherlog.log :as log]
+   [sherlog.s3 :as s3]
+   [sherlog.metric :as metric]))
 
 (defn -main [& args]
   (let [[cmd log-group pattern duration & opts] args]
-    (core/init! {:auth-type :profile
-                 :profile   (System/getenv "AWS_PROFILE")
-                 :region    "us-east-1"})
+    (log/init! {:auth-type :profile
+                :profile   (System/getenv "AWS_PROFILE")
+                :region    "us-east-1"})
     (condp = (keyword cmd)
       :tail
-      (doseq [line (core/tail log-group)]
+      (doseq [line (log/tail log-group)]
         (println line))
 
       :search
       (doseq [line (->> (read-string duration)
-                        (core/search log-group pattern)
+                        (log/search log-group pattern)
                         (flatten))]
         (println line)))))
