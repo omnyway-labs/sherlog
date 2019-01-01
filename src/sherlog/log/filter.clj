@@ -1,4 +1,5 @@
 (ns sherlog.log.filter
+  (:refer-clojure :exclude [list test])
   (:require
    [clojure.string :as str]
    [sherlog.log.client :refer [get-client]]
@@ -8,7 +9,8 @@
     DescribeMetricFiltersRequest
     PutMetricFilterRequest
     DeleteMetricFilterRequest
-    MetricTransformation]))
+    MetricTransformation
+    TestMetricFilterRequest]))
 
 (defn- make-metric-transformation [namespace name value]
   (doto (MetricTransformation.)
@@ -48,7 +50,7 @@
        (.describeMetricFilters (get-client))
        (as-metric-filters)))
 
-(defn list-all [log-group]
+(defn list [log-group]
   (loop [{:keys [token filters]} (find* log-group nil)
            acc []]
       (if-not token
@@ -56,3 +58,12 @@
             (flatten))
         (recur (find* log-group token)
                (conj acc filters)))))
+
+(defn test [pattern messages]
+  (println "Matching Pattern:" pattern)
+  (->> (doto (TestMetricFilterRequest.)
+         (.withLogEventMessages messages)
+         (.withFilterPattern pattern))
+       (.testMetricFilter (get-client))
+       (.getMatches)
+       (count)))

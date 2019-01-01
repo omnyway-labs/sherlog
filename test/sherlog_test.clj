@@ -48,8 +48,8 @@
              :rand (rand-int 10)}]
     (log-fixture
      (fn []
-       (->> (json/generate-string msg)
-            (log/put-event log-group log-stream))
+       (->> [(json/generate-string msg)]
+            (log/put-events log-group log-stream))
        (Thread/sleep 4000)
        (is (= msg
               (-> (log/search log-group {:a "foo"} 5)
