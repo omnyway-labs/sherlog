@@ -14,7 +14,7 @@ Add below git coordinates in deps.edn
 #+BEGIN_SRC clojure
 omnyway-labs/sherlog
 {:git/url "git@github.com:omnyway-labs/sherlog.git",
- :sha "f1c370711a5b8949af755c3f9997dcf441ba6175"}
+ :sha "6ee862fa51fde9f5840687352b07900b4fb4afd3"}
 #+END_SRC
 
 ** Querying Cloudwatch Logs
@@ -83,6 +83,36 @@ To create a Metric Filter, you could
 (metric/show "AWS/Billing" "EstimatedCharges" :currency "1d")
 #+end_src
 
+
+** Log-alarm
+
+*log-alarm* is an abstraction over Log filters, Metrics and Alarms.
+It is a bit opinionated in that it creates log-groups and Metric namespaces
+with the same name. Also, the alarm and metric names are the same.
+
+#+BEGIN_SRC clojure
+(require '[sherlog.log-alarm :as la])
+(la/init!
+(la/create :log-group "sherlog-test"
+           :metric-name "sherlog.a.count"
+           :pattern {:a "foo"}
+           :operator ">="
+           :threshold 3.0
+           :actions [pagerduty]
+           :period 60
+           :statistic :avg
+           :missing-data :not-breaching)
+#+END_SRC
+
+This ensures that the Filters and Alarms are created, atomically.
+The advantage of the log-alarm abstraction is that it removes a lot of
+boilerplate to just create simple filters and alarms on log streams.
+
+*la/delete* is atomic too. It ensures that all filters and alarms are deleted.
+
+#+BEGIN_SRC clojure
+(la/delete log-group)
+#+END_SRC
 
 ** Fetch Logs in S3 using S3-select
 
