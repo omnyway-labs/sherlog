@@ -61,8 +61,14 @@
 (defn delete-group [log-group]
   (stream/delete-group log-group))
 
+(defn list-groups []
+  (stream/list-groups))
+
 (defn create-stream [log-group log-stream]
   (stream/create log-group log-stream))
+
+(defn list-streams [log-group]
+  (stream/list log-group))
 
 (defn init! [config]
   (client/init! config))

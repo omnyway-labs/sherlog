@@ -1,4 +1,5 @@
 (ns sherlog.log.stream
+  (:refer-clojure :exclude [list])
   (:require
    [clojure.string :as str]
    [sherlog.log.client :refer [get-client]]
@@ -15,6 +16,11 @@
 
 (defn put-retention-policy []
   )
+
+(defn as-stream [s]
+  {:name                 (.getLogStreamName s)
+   :arn                  (.getArn s)
+   :last-event-timestamp (.getLastEventTimestamp s)})
 
 (defn create-group [log-group]
   (try
@@ -55,4 +61,15 @@
        (.getUploadSequenceToken)))
 
 (defn list-groups []
-  )
+  (->> (DescribeLogGroupsRequest.)
+       (.describeLogGroups (get-client))
+       (.getLogGroups)
+       (map #(.getLogGroupName %))))
+
+(defn list [log-group]
+  (->> (doto (DescribeLogStreamsRequest.)
+         (.withLogGroupName log-group)
+         (.withOrderBy "LastEventTime")
+         (.withDescending true))
+       (.describeLogStreams (get-client))
+       (map as-stream)))
