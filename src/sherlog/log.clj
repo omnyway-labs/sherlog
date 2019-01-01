@@ -18,7 +18,7 @@
     filters))
 
 (defn list-filters [log-group]
-  (filter/list-all log-group))
+  (filter/list log-group))
 
 (defn tail
   ([log-group]
@@ -35,15 +35,15 @@
    (let [pattern (make-pattern pattern)]
      (event/search log-group streams pattern duration))))
 
-(defn put-event
-  ([log-group log-stream msg]
+(defn put-events
+  ([log-group log-stream messages]
    (->> (stream/get-sequence-token log-group log-stream)
-        (event/put! log-group log-stream msg)))
-  ([log-group log-stream msg token]
-   (event/put! log-group log-stream msg token)))
+        (event/put! log-group log-stream messages)))
+  ([log-group log-stream messages token]
+   (event/put! log-group log-stream messages token)))
 
 (defn list-filters [log-group]
-  (filter/list-all log-group))
+  (filter/list log-group))
 
 (defn delete-filter [log-group filter-name]
   (filter/delete log-group filter-name))
@@ -51,9 +51,13 @@
 (defn create-filter [& {:keys [log-group name pattern namespace value]}]
   (filter/create :log-group log-group
                  :name      name
-                 :pattern   pattern
+                 :pattern   (make-pattern pattern)
                  :namespace namespace
                  :value     value))
+
+(defn test-filter [pattern messages]
+  (-> (make-pattern pattern)
+      (filter/test messages)))
 
 (defn create-group [log-group-name]
   (stream/create-group log-group-name))

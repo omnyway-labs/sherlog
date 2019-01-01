@@ -37,16 +37,18 @@
        (.getLogEvents (get-client))
        (as-log-events))))
 
-(defn put! [log-group log-stream msg token]
-  (let [event (doto (InputLogEvent.)
-                (.withMessage   msg)
-                (.withTimestamp (System/currentTimeMillis)))]
+(defn put! [log-group log-stream messages token]
+  (let [make-event (fn [msg]
+                     (doto (InputLogEvent.)
+                       (.withMessage   msg)
+                       (.withTimestamp (System/currentTimeMillis))))]
     (->> (doto (PutLogEventsRequest.)
            (.withLogGroupName log-group)
            (.withLogStreamName log-stream)
-           (.withLogEvents [event])
+           (.withLogEvents (map make-event messages))
            (.withSequenceToken token))
-         (.putLogEvents (get-client)))))
+         (.putLogEvents (get-client))
+         (.getNextSequenceToken))))
 
 (defn log-seq
   ([group stream]
