@@ -92,7 +92,10 @@ with the same name. Also, the alarm and metric names are the same.
 
 #+BEGIN_SRC clojure
 (require '[sherlog.log-alarm :as la])
-(la/init!
+(la/init! {:auth-type :profile
+           :profile   (System/getenv "AWS_PROFILE")
+           :region    "us-east-1"})
+
 (la/create :log-group "sherlog-test"
            :metric-name "sherlog.a.count"
            :pattern {:a "foo"}
@@ -164,3 +167,7 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
+
+* AUTHORS
+
+Isaac Praveen <icylisper at gmail.com>
