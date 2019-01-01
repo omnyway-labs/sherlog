@@ -1,4 +1,5 @@
 (ns sherlog.metric.alarm
+  (:refer-clojure :exclude [list])
   (:require
    [sherlog.metric.client :refer [get-client]]
    [sherlog.util :as u])
@@ -13,6 +14,7 @@
     Dimension
     SetAlarmStateRequest
     DisableAlarmActionsRequest
+    EnableAlarmActionsRequest
     DescribeAlarmHistoryRequest
     DeleteAlarmsRequest]))
 
@@ -62,7 +64,7 @@
        (.describeAlarms (get-client))
        (as-alarms)))
 
-(defn list-alarms []
+(defn list []
   (loop [{:keys [token alarms]}  (list-alarms* nil)
          acc  []]
     (if-not token
@@ -76,7 +78,7 @@
                         actions
                         period
                         statistic
-                        treat-missing-data]}]
+                        missing-data]}]
   (->> (doto (PutMetricAlarmRequest.)
          (.withAlarmName alarm-name)
          (.withMetricName metric-name)
@@ -87,7 +89,7 @@
          (.withStatistic (as-statistic statistic))
          (.withThreshold threshold)
          (.withAlarmActions actions)
-         (.withTreatMissingData (as-missing treat-missing-data)))
+         (.withTreatMissingData (as-missing missing-data)))
        (.putMetricAlarmRequest (get-client))))
 
 (defn delete [alarm-names]
@@ -106,8 +108,11 @@
     (.withAlarmNames [alarm-name])))
 
 (defn enable [alarm-name]
-  (doto (DisableAlarmActionsRequest.)
+  (doto (EnableAlarmActionsRequest.)
     (.withAlarmNames [alarm-name])))
+
+(defn as-alarm []
+  )
 
 (defn history [alarm-name]
   (->> (doto (DescribeAlarmHistoryRequest.)
