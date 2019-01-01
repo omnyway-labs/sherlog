@@ -1,0 +1,11 @@
+#!/bin/sh
+
+clojure \
+    -J-client \
+    -J-XX:+UseSerialGC \
+    -J-XX:CICompilerCount=1 \
+    -J-Xshare:off \
+    -J-XX:+TieredCompilation \
+    -J-Xverify:none \
+    -J-XX:TieredStopAtLevel=1 \
+    -m sherlog.main alarms $@
