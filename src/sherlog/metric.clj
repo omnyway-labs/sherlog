@@ -27,8 +27,8 @@
 
 (def create-alarm #'alarm/create)
 
-(defn delete-alarm [alarm-name]
-  (alarm/delete [alarm-name]))
+(defn delete-alarm [alarm-names]
+  (alarm/delete alarm-names))
 
 (def disable-alarm #'alarm/disable)
 
@@ -36,32 +36,8 @@
 
 (def alarm-history #'alarm/history)
 
-(defn create-metric-alarm [& {:keys [log-group
-                                     metric-name
-                                     pattern
-                                     operator
-                                     threshold
-                                     actions
-                                     period
-                                     statistic
-                                     missing-data]}]
-  (log/create-filter :log-group log-group
-                     :name      (name metric-name)
-                     :pattern   pattern
-                     :namespace log-group
-                     :value     "1")
-  #_(alarm/create  :alarm-name (name metric-name)
-                 :namespace  log-group
-                 :operator   operator
-                 :threshold  threshold
-                 :actions    actions
-                 :period     period
-                 :statistic  statistic
-                 :missing-data missing-data))
-
-(defn list-metric-alrams [log-group]
-  (let [metrics (namespace/list-metrics namespace)]
-    ))
+(defn describe-alarms [alarm-names]
+  (alarm/describe alarm-names))
 
 (defn init! [config]
   (client/init! config))

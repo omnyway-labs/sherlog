@@ -45,18 +45,19 @@
     :insufficient-data "INSUFFICIENT_DATA"
     :ok                "OK"))
 
+(defn- as-alarm [a]
+  {:name      (.getAlarmName a)
+   :metric    (.getMetricName a)
+   :period    (.getPeriod a)
+   :statistic (.getStatistic a)
+   :threshold (.getThreshold a)
+   :actions   (map u/arn-name (.getAlarmActions a))
+   :missing   (.getTreatMissingData a)
+   :state     (.getStateValue a)})
+
 (defn as-alarms [xs]
   {:token  (.getNextToken xs)
-   :alarms (map (fn [a]
-                  {:name      (.getAlarmName a)
-                   :metric    (.getMetricName a)
-                   :period    (.getPeriod a)
-                   :statistic (.getStatistic a)
-                   :threshold (.getThreshold a)
-                   :actions   (map u/arn-name (.getAlarmActions a))
-                   :missing   (.getTreatMissingData a)
-                   :state     (.getStateValue a)})
-                (.getMetricAlarms xs))})
+   :alarms (map as-alarm (.getMetricAlarms xs))})
 
 (defn list-alarms* [token]
   (->> (doto (DescribeAlarmsRequest.)
@@ -68,9 +69,17 @@
   (loop [{:keys [token alarms]}  (list-alarms* nil)
          acc  []]
     (if-not token
-      (conj acc alarms)
+      (->> (conj acc alarms)
+           (flatten))
       (recur (list-alarms* token)
              (conj acc alarms)))))
+
+(defn describe [alarm-names]
+  (->> (doto (DescribeAlarmsRequest.)
+         (.withAlarmNames alarm-names))
+       (.describeAlarms (get-client))
+       (.getMetricAlarms)
+       (map as-alarm)))
 
 (defn create [& {:keys [alarm-name namespace
                         metric-name operator
@@ -80,17 +89,18 @@
                         statistic
                         missing-data]}]
   (->> (doto (PutMetricAlarmRequest.)
-         (.withAlarmName alarm-name)
+         (.withAlarmName  alarm-name)
          (.withMetricName metric-name)
+         (.withNamespace  namespace)
          (.withComparisonOperator (as-operator operator))
-         (.withPeriod period)
+         (.withPeriod (int period))
          (.withEvaluationPeriods (int 1))
          (.withActionsEnabled true)
          (.withStatistic (as-statistic statistic))
          (.withThreshold threshold)
          (.withAlarmActions actions)
          (.withTreatMissingData (as-missing missing-data)))
-       (.putMetricAlarmRequest (get-client))))
+       (.putMetricAlarm (get-client))))
 
 (defn delete [alarm-names]
   (->> (doto (DeleteAlarmsRequest.)
@@ -110,9 +120,6 @@
 (defn enable [alarm-name]
   (doto (EnableAlarmActionsRequest.)
     (.withAlarmNames [alarm-name])))
-
-(defn as-alarm []
-  )
 
 (defn history [alarm-name]
   (->> (doto (DescribeAlarmHistoryRequest.)
