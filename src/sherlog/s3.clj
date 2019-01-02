@@ -2,7 +2,7 @@
   (:refer-clojure :exclude [select])
   (:require
    [sherlog.s3.client :as client]
-   [sherlog.s3.select :refer [query]]
+   [sherlog.s3.select :refer [query] :as s3]
    [sherlog.s3.stream :as stream]))
 
 (defn select
@@ -14,7 +14,7 @@
        (stream/write-seq out-file))))
 
 (defn list-keys [bucket prefix]
-  (select/list-keys bucket prefix))
+  (s3/list-keys bucket prefix))
 
 (defn init! [config]
   (client/init! config))
