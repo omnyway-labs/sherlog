@@ -25,6 +25,7 @@ jobs:
           sudo chmod +x /usr/local/bin/github-release
           sudo rm -f linux-amd64-github-release.tar.bz2
       - run: semver-from-git $VERSION_FILE
+      - run: export SEMVER=$(cat $VERSION_FILE); github-release release --user omnyway-labs --repo sherlog --tag $SEMVER  --target $CIRCLE_SHA1
 workflows:
   version: 2
   build_test_release:
