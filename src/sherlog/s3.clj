@@ -13,5 +13,8 @@
    (-> (query s3-bucket prefix filters)
        (stream/write-seq out-file))))
 
+(defn list-keys [bucket prefix]
+  (select/list-keys bucket prefix))
+
 (defn init! [config]
   (client/init! config))
