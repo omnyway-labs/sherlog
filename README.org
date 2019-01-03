@@ -97,7 +97,7 @@ with the same name. Also, the alarm and metric names are the same.
 
 (la/create :log-group "sherlog-test"
            :metric-name "sherlog.a.count"
-           :pattern {:a "foo"}
+           :filter {:a "foo"}
            :trigger '(>= avg 3.0)
            :actions [pagerduty]
            :period 60
