@@ -18,11 +18,11 @@
      :statistic (keyword stat)
      :threshold threshold}))
 
-(defn create [& {:keys [log-group metric-name
-                        filter trigger
-                        actions
-                        period
-                        missing-data]}]
+(defn create [{:keys [log-group metric-name
+                      filter trigger
+                      actions
+                      period
+                      missing-data]}]
   (log/create-filter :log-group log-group
                      :name      (name metric-name)
                      :pattern   filter

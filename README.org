@@ -95,18 +95,18 @@ with the same name. Also, the alarm and metric names are the same.
            :profile   (System/getenv "AWS_PROFILE")
            :region    "us-east-1"})
 
-(la/create :log-group "sherlog-test"
-           :metric-name "sherlog.a.count"
-           :filter {:a "foo"}
-           :trigger '(>= avg 3.0)
-           :actions [pagerduty]
-           :period 60
-           :missing-data :not-breaching)
+(la/create {:log-group   "sherlog-test"
+            :metric-name  "sherlog.a.count"
+            :filter       {:a "foo"}
+            :trigger      '(>= avg 3.0)
+            :actions      [pagerduty]
+            :period       60
+            :missing-data :not-breaching})
 #+END_SRC
 
 This ensures that the Filters and Alarms are created, atomically.
-The advantage of the log-alarm abstraction is that it removes a lot of
-boilerplate to just create simple filters and alarms on log streams.
+The advantage of the log-alarm abstraction is that it eliminates a lot
+of boilerplate to just create simple filters and alarms on log streams.
 
 `:trigger` takes a s-expression. For now it is of the form:
 '(operator statistic threshold)

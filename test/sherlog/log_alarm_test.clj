@@ -28,11 +28,11 @@
 (use-fixtures :once log-fixture)
 
 (deftest ^:integration create-log-alarm-test
-  (la/create :log-group log-group
-             :metric-name metric-name
-             :filter {:a "foo"}
-             :trigger '(>= avg 3.0)
-             :actions [pagerduty])
+  (la/create {:log-group   log-group
+              :metric-name metric-name
+              :filter      {:a "foo"}
+              :trigger     '(>= avg 3.0)
+              :actions     [pagerduty]})
   (is (= [metric-name]
          (->> (la/list log-group)
               (map :name))))
