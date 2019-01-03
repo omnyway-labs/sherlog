@@ -12,25 +12,33 @@
         alarms  (metric/describe-alarms (map :name filters))]
     (into [] (set/join filters alarms {:name :name}))))
 
+(defn- parse-trigger [trigger]
+  (let [[op stat threshold] trigger]
+    {:operator  (name op)
+     :statistic (keyword stat)
+     :threshold threshold}))
+
 (defn create [& {:keys [log-group metric-name
-                        pattern operator
-                        threshold actions
-                        period statistic
+                        filter trigger
+                        actions
+                        period
                         missing-data]}]
   (log/create-filter :log-group log-group
                      :name      (name metric-name)
-                     :pattern   pattern
+                     :pattern   filter
                      :namespace log-group
                      :value     "1")
-  (metric/create-alarm  :alarm-name (name metric-name)
-                        :metric-name metric-name
-                        :namespace  log-group
-                        :operator   operator
-                        :threshold  threshold
-                        :actions    actions
-                        :period     period
-                        :statistic  statistic
-                        :missing-data missing-data))
+  (let [{:keys [operator statistic threshold]} (parse-trigger trigger)]
+    (metric/create-alarm  :alarm-name (name metric-name)
+                          :metric-name metric-name
+                          :namespace  log-group
+                          :operator   operator
+                          :threshold  threshold
+                          :actions    actions
+                          :period     (or period 60)
+                          :statistic  statistic
+                          :missing-data (or missing-data
+                                            :not-breaching))))
 
 (defn delete [log-group]
   (let [filters (log/list-filters log-group)]

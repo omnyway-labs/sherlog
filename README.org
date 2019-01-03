@@ -83,7 +83,6 @@ To create a Metric Filter, you could
 (metric/show "AWS/Billing" "EstimatedCharges" :currency "1d")
 #+end_src
 
-
 ** Log-alarm
 
 *log-alarm* is an abstraction over Log filters, Metrics and Alarms.
@@ -99,17 +98,18 @@ with the same name. Also, the alarm and metric names are the same.
 (la/create :log-group "sherlog-test"
            :metric-name "sherlog.a.count"
            :pattern {:a "foo"}
-           :operator ">="
-           :threshold 3.0
+           :trigger '(>= avg 3.0)
            :actions [pagerduty]
            :period 60
-           :statistic :avg
            :missing-data :not-breaching)
 #+END_SRC
 
 This ensures that the Filters and Alarms are created, atomically.
 The advantage of the log-alarm abstraction is that it removes a lot of
 boilerplate to just create simple filters and alarms on log streams.
+
+`:trigger` takes a s-expression. For now it is of the form:
+'(operator statistic threshold)
 
 *la/delete* is atomic too. It ensures that all filters and alarms are deleted.
 

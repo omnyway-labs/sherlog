@@ -30,13 +30,9 @@
 (deftest ^:integration create-log-alarm-test
   (la/create :log-group log-group
              :metric-name metric-name
-             :pattern {:a "foo"}
-             :operator ">="
-             :threshold 3.0
-             :actions [pagerduty]
-             :period 60
-             :statistic :avg
-             :missing-data :not-breaching)
+             :filter {:a "foo"}
+             :trigger '(>= avg 3.0)
+             :actions [pagerduty])
   (is (= [metric-name]
          (->> (la/list log-group)
               (map :name))))
