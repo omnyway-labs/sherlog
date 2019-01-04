@@ -18,7 +18,9 @@
      :statistic (keyword stat)
      :threshold threshold}))
 
-(defn create [{:keys [log-group metric-name
+(defn create [{:keys [log-group
+                      metric-name
+                      alarm-name
                       filter trigger
                       actions
                       period
@@ -29,7 +31,7 @@
                      :namespace log-group
                      :value     "1")
   (let [{:keys [operator statistic threshold]} (parse-trigger trigger)]
-    (metric/create-alarm  :alarm-name (name metric-name)
+    (metric/create-alarm  :alarm-name (name alarm-name)
                           :metric-name metric-name
                           :namespace  log-group
                           :operator   operator

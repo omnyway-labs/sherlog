@@ -87,7 +87,7 @@ To create a Metric Filter, you could
 
 *log-alarm* is an abstraction over Log filters, Metrics and Alarms.
 It is a bit opinionated in that it creates log-groups and Metric namespaces
-with the same name. Also, the alarm and metric names are the same.
+with the same name.
 
 #+BEGIN_SRC clojure
 (require '[sherlog.log-alarm :as la])
