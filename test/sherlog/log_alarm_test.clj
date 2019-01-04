@@ -29,6 +29,7 @@
 
 (deftest ^:integration create-log-alarm-test
   (la/create {:log-group   log-group
+              :alarm-name  metric-name
               :metric-name metric-name
               :filter      {:a "foo"}
               :trigger     '(>= avg 3.0)
