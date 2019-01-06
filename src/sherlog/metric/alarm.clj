@@ -48,6 +48,7 @@
 (defn- as-alarm [a]
   {:name      (.getAlarmName a)
    :metric    (.getMetricName a)
+   :namespace (.getNamespace a)
    :period    (.getPeriod a)
    :statistic (.getStatistic a)
    :threshold (.getThreshold a)

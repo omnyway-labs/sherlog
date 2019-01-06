@@ -9,8 +9,9 @@
 
 (defn list [log-group]
   (let [filters (log/list-filters log-group)
-        alarms  (metric/describe-alarms (map :name filters))]
-    (into [] (set/join filters alarms {:name :name}))))
+        alarms   (->> (metric/list-alarms)
+                      (filter #(= (:namespace %) log-group)))]
+    (into [] (set/join filters alarms {:name :metric}))))
 
 (defn- parse-trigger [trigger]
   (let [[op stat threshold] trigger]
