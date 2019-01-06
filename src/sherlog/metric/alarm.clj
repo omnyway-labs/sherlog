@@ -54,6 +54,7 @@
    :threshold (.getThreshold a)
    :actions   (map u/arn-name (.getAlarmActions a))
    :missing   (.getTreatMissingData a)
+   :datapoints (.getDatapointsToAlarm a)
    :state     (.getStateValue a)})
 
 (defn as-alarms [xs]
@@ -88,6 +89,7 @@
                         actions
                         period
                         statistic
+                        datapoints
                         missing-data]}]
   (->> (doto (PutMetricAlarmRequest.)
          (.withAlarmName  alarm-name)
@@ -100,6 +102,7 @@
          (.withStatistic (as-statistic statistic))
          (.withThreshold threshold)
          (.withAlarmActions actions)
+         (.withDatapointsToAlarm (int datapoints))
          (.withTreatMissingData (as-missing missing-data)))
        (.putMetricAlarm (get-client))))
 

@@ -25,6 +25,7 @@
                       filter trigger
                       actions
                       period
+                      datapoints
                       missing-data]}]
   (log/create-filter :log-group log-group
                      :name      (name metric-name)
@@ -40,6 +41,7 @@
                           :actions    actions
                           :period     (or period 60)
                           :statistic  statistic
+                          :datapoints (or datapoints 1)
                           :missing-data (or missing-data
                                             :not-breaching))))
 
