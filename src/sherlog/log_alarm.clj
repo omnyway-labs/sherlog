@@ -44,7 +44,8 @@
 
 (defn delete [log-group]
   (let [filters (log/list-filters log-group)]
-    (metric/delete-alarm (map :name filters))
+    (->> (map :name filters)
+         (metric/delete-alarms))
     (doseq [{:keys [name]} filters]
       (log/delete-filter log-group name))))
 

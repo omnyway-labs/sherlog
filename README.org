@@ -83,40 +83,6 @@ To create a Metric Filter, you could
 (metric/show "AWS/Billing" "EstimatedCharges" :currency "1d")
 #+end_src
 
-** Log-alarm
-
-*log-alarm* is an abstraction over Log filters, Metrics and Alarms.
-It is a bit opinionated in that it creates log-groups and Metric namespaces
-with the same name.
-
-#+BEGIN_SRC clojure
-(require '[sherlog.log-alarm :as la])
-(la/init! {:auth-type :profile
-           :profile   (System/getenv "AWS_PROFILE")
-           :region    "us-east-1"})
-
-(la/create {:log-group   "sherlog-test"
-            :metric-name  "sherlog.a.count"
-            :filter       {:a "foo"}
-            :trigger      '(>= avg 3.0)
-            :actions      [pagerduty]
-            :period       60
-            :missing-data :not-breaching})
-#+END_SRC
-
-This ensures that the Filters and Alarms are created, atomically.
-The advantage of the log-alarm abstraction is that it eliminates a lot
-of boilerplate to just create simple filters and alarms on log streams.
-
-`:trigger` takes a s-expression. For now it is of the form:
-'(operator statistic threshold)
-
-*la/delete* is atomic too. It ensures that all filters and alarms are deleted.
-
-#+BEGIN_SRC clojure
-(la/delete log-group)
-#+END_SRC
-
 ** Fetch Logs in S3 using S3-select
 
 Sherlog uses s3-select to *grep* logs in S3. Currently supports only

@@ -27,7 +27,10 @@
 
 (def create-alarm #'alarm/create)
 
-(defn delete-alarm [alarm-names]
+(defn delete-alarm [alarm-name]
+  (alarm/delete [alarm-name]))
+
+(defn delete-alarms [alarm-names]
   (alarm/delete alarm-names))
 
 (def disable-alarm #'alarm/disable)
