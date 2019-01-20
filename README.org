@@ -13,8 +13,8 @@ Add below git coordinates in deps.edn
 
 #+BEGIN_SRC clojure
 omnyway-labs/sherlog
-{:git/url "git@github.com:omnyway-labs/sherlog.git",
- :sha "6ee862fa51fde9f5840687352b07900b4fb4afd3"}
+{:git/url "https://github.com/omnyway-labs/sherlog.git",
+ :sha "128efe1f003c68824b2ef403c58666a4d35bd539"}
 #+END_SRC
 
 ** Querying Cloudwatch Logs

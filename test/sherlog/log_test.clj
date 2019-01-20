@@ -12,18 +12,13 @@
 (def log-group "sherlog-test")
 (def log-stream "test-stream")
 
-(defn log-fixture [f]
-  (try
-    (log/init! (saw/session))
-    (log/create-group log-group)
-    (log/create-stream log-group log-stream)
-    (f)
-    (catch Exception e
-      (println e))))
-
-(use-fixtures :once log-fixture)
+(defn setup []
+  (log/init! (saw/session))
+  (log/create-group log-group)
+  (log/create-stream log-group log-stream))
 
 (deftest ^:integration log-search-test
+  (setup)
   (let [msg {:a    "foo"
              :b    "bar"
              :c    {:d "baz"}
@@ -38,6 +33,7 @@
                (first))))))
 
 (deftest ^:integration log-filter-test
+  (setup)
   (let [filter-name "sherlog-filter"]
     (log/create-filter :log-group log-group
                        :name      filter-name
