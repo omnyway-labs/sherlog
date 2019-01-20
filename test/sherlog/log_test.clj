@@ -19,7 +19,7 @@
     (log/create-stream log-group log-stream)
     (f)
     (catch Exception e
-      nil)))
+      (println e))))
 
 (use-fixtures :once log-fixture)
 

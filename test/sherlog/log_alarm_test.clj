@@ -19,11 +19,12 @@
     (log/create-stream log-group log-stream)
     (f)
     (catch Exception e
-      nil)))
+      (println e))))
 
 (use-fixtures :once log-fixture)
 
 (deftest ^:integration create-log-alarm-test
+  (println "running integration")
   (la/create {:log-group   log-group
               :alarm-name  metric-name
               :metric-name metric-name
