@@ -2,12 +2,10 @@
   (:require
    [clojure.test :refer :all]
    [cheshire.core :as json]
+   [saw.core :as saw]
    [sherlog.util :as u]
    [sherlog.log :as log]
    [sherlog.log-alarm :as la]))
-
-(def auth {:auth-type :profile
-           :profile (System/getenv "AWS_PROFILE")})
 
 (def log-group "sherlog-test")
 (def log-stream "test-stream")
@@ -16,14 +14,12 @@
 
 (defn log-fixture [f]
   (try
-    (la/init! auth)
+    (la/init! (saw/session))
     (log/create-group log-group)
     (log/create-stream log-group log-stream)
     (f)
     (catch Exception e
-      nil)
-    (finally
-      (log/delete-group log-group))))
+      nil)))
 
 (use-fixtures :once log-fixture)
 

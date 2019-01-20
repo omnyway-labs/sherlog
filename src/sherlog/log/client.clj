@@ -1,6 +1,6 @@
 (ns sherlog.log.client
   (:require
-   [sherlog.cred :as cred])
+   [saw.core :as saw])
   (:import
    [com.amazonaws.regions Regions]
    [com.amazonaws.services.logs AWSLogsClientBuilder]))
@@ -9,7 +9,7 @@
 
 (defn- make-client [region]
   (-> (AWSLogsClientBuilder/standard)
-      (.withCredentials (cred/cred-provider))
+      (.withCredentials (saw/creds))
       (.withRegion region)
       .build))
 
@@ -17,5 +17,5 @@
   @client)
 
 (defn init! [config]
-  (cred/init! config)
+  (saw/login config)
   (reset! client (make-client (or (:region config) "us-east-1"))))

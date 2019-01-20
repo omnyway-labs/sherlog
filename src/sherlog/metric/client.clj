@@ -1,6 +1,6 @@
 (ns sherlog.metric.client
   (:require
-   [sherlog.cred :as cred])
+   [saw.core :as saw])
   (:import
    [com.amazonaws.regions Regions]
    [com.amazonaws.services.cloudwatch
@@ -13,10 +13,10 @@
 
 (defn make-client [region]
   (reset! client (-> (AmazonCloudWatchClientBuilder/standard)
-                     (.withCredentials (cred/cred-provider))
+                     (.withCredentials (saw/creds))
                      (.withRegion region)
                      .build)))
 
 (defn init! [config]
-  (cred/init! config)
+  (saw/login config)
   (make-client (or (:region config) "us-east-1")))

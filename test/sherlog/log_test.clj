@@ -2,6 +2,7 @@
   (:require
    [clojure.test :refer :all]
    [cheshire.core :as json]
+   [saw.core :as saw]
    [sherlog.util :as u]
    [sherlog.log :as log]))
 
@@ -13,14 +14,12 @@
 
 (defn log-fixture [f]
   (try
-    (log/init! auth)
+    (log/init! (saw/session))
     (log/create-group log-group)
     (log/create-stream log-group log-stream)
     (f)
     (catch Exception e
-      nil)
-    (finally
-      (log/delete-group log-group))))
+      nil)))
 
 (use-fixtures :once log-fixture)
 
