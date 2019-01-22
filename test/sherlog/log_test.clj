@@ -13,9 +13,12 @@
 (def log-stream "test-stream")
 
 (defn setup []
-  (log/init! (saw/session))
-  (log/create-group log-group)
-  (log/create-stream log-group log-stream))
+  (try
+    (log/init! (saw/session))
+    (log/create-group log-group)
+    (log/create-stream log-group log-stream)
+    (catch Exception e
+      (println (.getMessage e)))))
 
 (deftest ^:integration log-search-test
   (setup)

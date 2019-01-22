@@ -102,6 +102,7 @@
          (.withStatistic (as-statistic statistic))
          (.withThreshold threshold)
          (.withAlarmActions actions)
+         (.withOKActions actions)
          (.withDatapointsToAlarm (int datapoints))
          (.withTreatMissingData (as-missing missing-data)))
        (.putMetricAlarm (get-client))))

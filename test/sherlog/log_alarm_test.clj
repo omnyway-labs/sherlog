@@ -12,10 +12,16 @@
 (def metric-name "sherlog.a.count")
 (def pagerduty (System/getenv "PAGERDUTY_ARN"))
 
+(defn setup []
+  (try
+    (la/init! (saw/session))
+    (log/create-group log-group)
+    (log/create-stream log-group log-stream)
+    (catch Exception e
+      nil)))
+
 (deftest ^:integration create-log-alarm-test
-  (la/init! (saw/session))
-  (log/create-group log-group)
-  (log/create-stream log-group log-stream)
+  (setup)
   (la/create {:log-group   log-group
               :alarm-name  metric-name
               :metric-name metric-name
