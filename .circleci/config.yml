@@ -30,4 +30,4 @@ workflows:
       - release:
           filters:
             branches:
-              only: release
+              only: master
