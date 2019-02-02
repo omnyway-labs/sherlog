@@ -3,9 +3,9 @@
 A Clojure Library to query logs in Cloudwatch and S3
 
 Sherlog provides APIs to
-- Query and Cloudwatch Log Streams
-- Filter and Fetch logs in S3 using AWS S3-select
+- Query Cloudwatch Log Streams
 - Create Metric Filters on Cloudwatch Logs
+- Create Alarms on these Metric filters
 
 * Usage
 
@@ -83,40 +83,6 @@ To create a Metric Filter, you could
 (metric/show "AWS/Billing" "EstimatedCharges" :currency "1d")
 #+end_src
 
-** Fetch Logs in S3 using S3-select
-
-Sherlog uses s3-select to *grep* logs in S3. Currently supports only
-GZIPPed JSON encoded logs.
-
-#+BEGIN_SRC clojure
-(require '[sherlog.s3 :as s3])
-(s3/init! {:auth-type :profile
-           :profile   (System/getenv "AWS_PROFILE")
-           :region    "us-east-1"})
-#+END_SRC
-
-#+begin_src clojure
-(s3/select s3-bucket prefix filters)
-returns a lazy-seq of the S3 logs.
-
-;; we can optionally write the results to a file
-(s3/select "my-bucket" prefix filters "/tmp/data.json")
-#+end_src
-
-Let us say we have some data in a S3 bucket like below:
-#+BEGIN_SRC json
-{"id":1,"name":"foo.bar","address":"Las Vegas","car":"golf", "context": {"request-id": "Root-1=abc"}}
-{"id":2,"name":"Ben Mostafa","address":"Las Vegas","car":"Mustang"}
-#+END_SRC
-
-We could use simple maps as filters
-
-#+BEGIN_SRC clojure
-(s3/select "my-bucket" "2018/12/10" {:id 1})
-
-;; or for nested data use a dotted notation
-(s3/select "my-bucket" "2018/12/10" {:context.request-id "Root-1=abc"})
-#+END_SRC
 
 * License - Apache 2.0
 
