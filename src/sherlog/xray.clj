@@ -97,4 +97,4 @@
 
 (defn init! [config]
   (saw/login config)
-  (reset! client (make-client (or (:region config) "us-east-1"))))
+  (reset! client (make-client (saw/region))))

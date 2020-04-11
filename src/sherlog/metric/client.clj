@@ -19,4 +19,4 @@
 
 (defn init! [config]
   (saw/login config)
-  (make-client (or (:region config) "us-east-1")))
+  (make-client (saw/region)))

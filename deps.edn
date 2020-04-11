@@ -3,11 +3,11 @@
   clj-time {:mvn/version "0.14.4"},
   com.amazonaws/aws-java-sdk-cloudwatch {:mvn/version "1.11.428"},
   com.amazonaws/aws-java-sdk-logs {:mvn/version "1.11.428"},
-  com.amazonaws/aws-java-sdk-xray #:mvn{:version "1.11.428"}
+  com.amazonaws/aws-java-sdk-xray {:mvn/version "1.11.428"},
   com.google.guava/guava {:mvn/version "22.0"},
   omnyway-labs/saw
   {:git/url "https://github.com/omnyway-labs/saw.git",
-   :sha "901066b6285e5bd90d8638275563a0a1696aa606",
-   :time "2019-01-23T17:28:50.000+0000",
-   :tag "0.1.1"},
+   :sha "9f800666addede6847eb29ee3b771f70943e1d5a",
+   :time "2020-04-11T17:38:29.000+0000",
+   :tag "0.2.7"},
   org.clojure/clojure {:mvn/version "1.9.0"}}}
