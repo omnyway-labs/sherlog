@@ -1,13 +1,13 @@
 {:deps
  {cheshire {:mvn/version "5.8.1"},
   clj-time {:mvn/version "0.14.4"},
-  com.amazonaws/aws-java-sdk-cloudwatch {:mvn/version "1.11.428"},
-  com.amazonaws/aws-java-sdk-logs {:mvn/version "1.11.428"},
-  com.amazonaws/aws-java-sdk-xray {:mvn/version "1.11.428"},
+  com.amazonaws/aws-java-sdk-cloudwatch {:mvn/version "1.11.762"},
+  com.amazonaws/aws-java-sdk-logs {:mvn/version "1.11.762"},
+  com.amazonaws/aws-java-sdk-xray {:mvn/version "1.11.762"},
   com.google.guava/guava {:mvn/version "22.0"},
   omnyway-labs/saw
   {:git/url "https://github.com/omnyway-labs/saw.git",
-   :sha "9f800666addede6847eb29ee3b771f70943e1d5a",
-   :time "2020-04-11T17:38:29.000+0000",
-   :tag "0.2.7"},
-  org.clojure/clojure {:mvn/version "1.9.0"}}}
+   :sha "9010d3841b5a2d7cff670661efc74b7f26492f02",
+   :time "2020-04-12T15:38:54.000+0000",
+   :tag "0.2.10"},
+  org.clojure/clojure {:mvn/version "1.10.1"}}}
